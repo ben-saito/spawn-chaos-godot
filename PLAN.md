@@ -40,7 +40,7 @@ Key features:
 
 ## 2. Twitcasting Chat Integration
 - **Depends on:** 1
-- **Status:** pending
+- **Status:** done
 - **Targets:** scripts/twitcasting/twitcasting_client.gd, scripts/twitcasting/command_parser.gd, scripts/twitcasting/viewer_points.gd, scripts/twitcasting/chat_connector.gd, scripts/twitcasting/simulator_receiver.gd
 - **Goal:** Integrate Twitcasting live chat so viewers can spawn enemies and activate gimmicks via commands. Includes per-viewer point system and local UDP simulator for testing.
 - **Requirements:**
