@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(for f:*)",
+      "Bash(do)",
+      "Bash(sed -i '' 's/^extends EnemyBase$/extends \"\"res:\\\\/\\\\/entities\\\\/enemies\\\\/enemy_base.gd\"\"/' \"$f\")",
+      "Bash(done)",
+      "Bash(timeout 8 godot --headless --path /Users/tsutomusaito/spawn-chaos-godot --check-only)",
+      "Bash(gtimeout 8 godot --headless --path /Users/tsutomusaito/spawn-chaos-godot)",
+      "Bash(gh api:*)",
+      "Bash(python3 -c \"import sys,json; [print\\(f''''{x[\"\"type\"\"]}: {x[\"\"name\"\"]}''''\\) for x in json.load\\(sys.stdin\\)]\")",
+      "Bash(pip3 install:*)",
+      "Bash(python3:*)",
+      "Read(//Applications/**)",
+      "Read(//usr/local/bin/**)",
+      "Bash(MOVIE=screenshots/core_game)",
+      "Bash(rm -rf $MOVIE)",
+      "Bash(mkdir -p $MOVIE)",
+      "Bash(godot --write-movie $MOVIE/frame.png --fixed-fps 10 --quit-after 30 --script test/test_core_game.gd)",
+      "Bash(godot:*)"
+    ]
+  }
+}
