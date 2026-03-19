@@ -6,10 +6,13 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "movie_id is required" });
   }
 
-  const token = process.env.TWITCASTING_TOKEN;
-  if (!token) {
-    return res.status(500).json({ error: "Server token not configured" });
+  const clientId = process.env.TWITCASTING_CLIENT_ID;
+  const clientSecret = process.env.TWITCASTING_CLIENT_SECRET;
+  if (!clientId || !clientSecret) {
+    return res.status(500).json({ error: "Server credentials not configured" });
   }
+
+  const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
   try {
     let url = `https://apiv2.twitcasting.tv/movies/${encodeURIComponent(movie_id)}/comments`;
@@ -19,7 +22,7 @@ export default async function handler(req, res) {
 
     const response = await fetch(url, {
       headers: {
-        "Authorization": `Bearer ${token}`,
+        "Authorization": `Basic ${basicAuth}`,
         "Accept": "application/json",
       },
     });

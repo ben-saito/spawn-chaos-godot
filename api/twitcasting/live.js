@@ -6,17 +6,20 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "user_id is required" });
   }
 
-  const token = process.env.TWITCASTING_TOKEN;
-  if (!token) {
-    return res.status(500).json({ error: "Server token not configured" });
+  const clientId = process.env.TWITCASTING_CLIENT_ID;
+  const clientSecret = process.env.TWITCASTING_CLIENT_SECRET;
+  if (!clientId || !clientSecret) {
+    return res.status(500).json({ error: "Server credentials not configured" });
   }
+
+  const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
   try {
     const response = await fetch(
       `https://apiv2.twitcasting.tv/users/${encodeURIComponent(user_id)}/current_live`,
       {
         headers: {
-          "Authorization": `Bearer ${token}`,
+          "Authorization": `Basic ${basicAuth}`,
           "Accept": "application/json",
         },
       }
