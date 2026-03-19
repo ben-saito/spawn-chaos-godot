@@ -114,7 +114,7 @@ func _on_game_reset() -> void:
 ## Connect to a Twitcasting user's live stream by user_id
 func connect_to_user(user_id: String) -> void:
 	if _api_key == "":
-		connection_status_changed.emit(false, "APIトークンが未設定です (.envにTWITCASTING_TOKENを設定)")
+		connection_status_changed.emit(false, "APIトークンが未設定です（設定画面で入力してください）")
 		return
 	connection_status_changed.emit(false, "%s の配信を検索中..." % user_id)
 	var url := "https://apiv2.twitcasting.tv/users/%s/current_live" % user_id
