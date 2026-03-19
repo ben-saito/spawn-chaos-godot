@@ -1,10 +1,5 @@
 {
   "outputDirectory": "web_export",
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "@vercel/node@3"
-    }
-  },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" }
   ],
