@@ -55,6 +55,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 
+	# Ctrl+V / Cmd+V: paste from clipboard
+	if event.keycode == KEY_V and (event.ctrl_pressed or event.meta_pressed):
+		var clipboard := DisplayServer.clipboard_get()
+		if clipboard != "":
+			_user_id_input += clipboard.strip_edges()
+		get_viewport().set_input_as_handled()
+		return
+
+	# Ctrl+A / Cmd+A: select all (clear)
+	if event.keycode == KEY_A and (event.ctrl_pressed or event.meta_pressed):
+		_user_id_input = ""
+		get_viewport().set_input_as_handled()
+		return
+
 	if event.unicode > 0:
 		var ch := char(event.unicode)
 		if ch.is_valid_identifier() or ch == "_" or ch == "-" or ch == "@" or ch == ":":
