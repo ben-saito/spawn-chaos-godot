@@ -110,6 +110,10 @@ func _get_connector() -> Node:
 	return null
 
 func show_setup() -> void:
+	if OS.has_feature("web"):
+		# Web: use browser prompt dialog (most reliable for text input)
+		_show_web_prompt()
+		return
 	_active = true
 	visible = true
 	_status_label.text = ""
@@ -119,6 +123,28 @@ func show_setup() -> void:
 	get_tree().paused = true
 	# Focus the text input
 	_line_edit.call_deferred("grab_focus")
+
+func _show_web_prompt() -> void:
+	var saved := _load_saved("twitcasting_user.txt")
+	var js_code := """
+	(function() {
+		var saved = '%s';
+		var result = prompt('Twitcasting ユーザーIDを入力してください\\n(配信ページURL twitcasting.tv/ の後の部分)', saved);
+		return result || '';
+	})()
+	""" % saved.replace("'", "\\'")
+	var result = JavaScriptBridge.eval(js_code)
+	if result != null and str(result) != "":
+		var user_id := str(result).strip_edges()
+		_line_edit.text = user_id
+		_save_data("twitcasting_user.txt", user_id)
+		# Show status in game
+		_active = true
+		visible = true
+		process_mode = Node.PROCESS_MODE_ALWAYS
+		get_tree().paused = true
+		_do_connect()
+	# If cancelled, just return to weapon select
 
 func _on_text_submitted(_text: String) -> void:
 	_do_connect()
