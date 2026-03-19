@@ -21,8 +21,6 @@ EventBus="*res://autoloads/event_bus.gd"
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
-window/size/window_width_override=2560
-window/size/window_height_override=1440
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
@@ -60,4 +58,4 @@ common/physics_ticks_per_second=30
 
 [rendering]
 
-renderer/rendering_method="forward_plus"
+renderer/rendering_method="gl_compatibility"

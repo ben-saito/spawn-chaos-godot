@@ -7,6 +7,11 @@ var _udp: PacketPeerUDP
 const PORT := 19876
 
 func _ready() -> void:
+	# UDP is not available on Web platform
+	if OS.has_feature("web"):
+		print("SimulatorReceiver: Disabled on web platform")
+		_udp = null
+		return
 	_udp = PacketPeerUDP.new()
 	var err := _udp.bind(PORT, "127.0.0.1")
 	if err != OK:
