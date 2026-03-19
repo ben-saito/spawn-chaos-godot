@@ -67,7 +67,12 @@ func _draw() -> void:
 	# Hint
 	draw_string(ThemeDB.fallback_font, Vector2(Config.SCREEN_W / 2.0 - 160, Config.SCREEN_H - 55), "2〜5キーで武器を選択してください", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.5, 0.5, 0.6))
 	# Twitcasting setup hint
-	draw_string(ThemeDB.fallback_font, Vector2(Config.SCREEN_W / 2.0 - 150, Config.SCREEN_H - 30), "T or 6キー: Twitcasting接続設定", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.4, 0.35, 0.6))
+	# Twitcasting setup button (prominent)
+	var tc_x := Config.SCREEN_W / 2.0 - 160
+	var tc_y := Config.SCREEN_H - 45.0
+	draw_rect(Rect2(tc_x, tc_y, 320, 30), Color(0.15, 0.1, 0.3, 0.8))
+	draw_rect(Rect2(tc_x, tc_y, 320, 30), Color(0.5, 0.4, 0.8), false, 1.5)
+	draw_string(ThemeDB.fallback_font, Vector2(tc_x + 20, tc_y + 22), "0 / T / 6 キー: Twitcasting接続設定", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(0.7, 0.6, 1.0))
 
 # --- Weapon Icons ---
 

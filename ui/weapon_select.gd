@@ -19,6 +19,8 @@ func _on_game_reset() -> void:
 	visible = true
 	_draw_node.queue_redraw()
 
+var _tc_key_held: bool = false
+
 func _process(_delta: float) -> void:
 	if GameState.state != GameState.State.WEAPON_SELECT:
 		visible = false
@@ -26,19 +28,27 @@ func _process(_delta: float) -> void:
 	visible = true
 	_draw_node.queue_redraw()
 
-	# T or 6 key: open Twitcasting setup
-	if Input.is_key_pressed(KEY_T) or Input.is_key_pressed(KEY_6):
+func _unhandled_input(event: InputEvent) -> void:
+	if GameState.state != GameState.State.WEAPON_SELECT:
+		return
+	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+
+	# T, 6, or 0 key: open Twitcasting setup
+	if event.keycode == KEY_T or event.keycode == KEY_6 or event.keycode == KEY_0:
 		var tc_setup = get_tree().current_scene.find_child("TwitcastingSetup")
 		if tc_setup and tc_setup.has_method("show_setup"):
 			tc_setup.show_setup()
+		get_viewport().set_input_as_handled()
 		return
 
-	# Check for weapon selection (keys 2-5, since aura is always available)
+	# Weapon selection (keys 2-5)
 	for key_num in [2, 3, 4, 5]:
 		var key_code: int = KEY_1 + key_num - 1
-		if Input.is_key_pressed(key_code):
+		if event.keycode == key_code:
 			_select_weapon(key_num)
-			break
+			get_viewport().set_input_as_handled()
+			return
 
 func _select_weapon(key_num: int) -> void:
 	var weapon_info: Dictionary = WEAPONS[key_num]

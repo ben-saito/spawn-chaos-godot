@@ -104,20 +104,25 @@ func _process(delta: float) -> void:
 	_step_timer += delta
 	_draw_node.queue_redraw()
 
-	# Skip with Escape
-	if Input.is_key_pressed(KEY_ESCAPE):
-		GameState.state = GameState.State.WEAPON_SELECT
-		visible = false
+func _unhandled_input(event: InputEvent) -> void:
+	if GameState.state != GameState.State.TUTORIAL:
+		return
+	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+	if _step_timer < 0.3:
 		return
 
-	# Advance with Space (with debounce)
-	if Input.is_action_pressed("ui_accept"):
-		if not _key_held and _step_timer > 0.3:
-			_key_held = true
-			_step += 1
-			_step_timer = 0.0
-			if _step >= STEPS.size():
-				GameState.state = GameState.State.WEAPON_SELECT
-				visible = false
-	else:
-		_key_held = false
+	# Skip with Escape
+	if event.keycode == KEY_ESCAPE:
+		GameState.state = GameState.State.WEAPON_SELECT
+		visible = false
+		get_viewport().set_input_as_handled()
+		return
+
+	# Advance with Space or Enter or any key
+	_step += 1
+	_step_timer = 0.0
+	if _step >= STEPS.size():
+		GameState.state = GameState.State.WEAPON_SELECT
+		visible = false
+	get_viewport().set_input_as_handled()
