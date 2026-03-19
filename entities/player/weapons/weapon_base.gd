@@ -1,4 +1,4 @@
-extends Node2D
+extends Node3D
 ## Base class for all player weapons.
 
 var unlocked: bool = false
@@ -23,7 +23,7 @@ func get_enemies() -> Array:
 		return container.get_children()
 	return []
 
-func get_player() -> CharacterBody2D:
+func get_player() -> CharacterBody3D:
 	var scene = get_tree().current_scene
 	if scene == null:
 		return null

@@ -5,7 +5,7 @@ var hw_damage: int = 5
 var hw_duration: int = 90
 const HW_COOLDOWN := 120
 const MAX_POOLS := 2
-const POOL_RADIUS := 12.0
+const POOL_RADIUS := 2.0
 const HIT_COOLDOWN := 15
 
 var _pools: Array = []
@@ -26,7 +26,9 @@ func _weapon_update() -> void:
 	var nearest_dist := 9999.0
 	for e in enemies:
 		if e.has_method("take_damage") and e.alive:
-			var d := player_node.position.distance_to(e.position)
+			var dx: float = player_node.position.x - e.position.x
+			var dz: float = player_node.position.z - e.position.z
+			var d: float = sqrt(dx * dx + dz * dz)
 			if d < nearest_dist:
 				nearest_dist = d
 				nearest = e
@@ -35,9 +37,9 @@ func _weapon_update() -> void:
 		_spawn_pool(nearest.position)
 		_cooldown_timer = HW_COOLDOWN
 
-func _spawn_pool(pos: Vector2) -> void:
+func _spawn_pool(pos: Vector3) -> void:
 	var pool := HolyWaterPool.new()
-	pool.position = pos
+	pool.position = Vector3(pos.x, 0.01, pos.z)
 	pool.damage = hw_damage
 	pool.duration = hw_duration
 	pool.radius = POOL_RADIUS
@@ -49,13 +51,33 @@ func _spawn_pool(pos: Vector2) -> void:
 		_pools.append(pool)
 
 
-class HolyWaterPool extends Node2D:
+class HolyWaterPool extends Node3D:
 	var damage: int = 5
 	var duration: int = 90
-	var radius: float = 12.0
+	var radius: float = 2.0
 	var hit_cooldown: int = 15
 	var _timer: int = 0
 	var _hit_cooldowns: Dictionary = {}
+	var _pool_mesh: MeshInstance3D
+	var _pool_material: StandardMaterial3D
+
+	func _ready() -> void:
+		# Flat cylinder for pool
+		_pool_mesh = MeshInstance3D.new()
+		var cyl := CylinderMesh.new()
+		cyl.top_radius = radius
+		cyl.bottom_radius = radius
+		cyl.height = 0.05
+		_pool_mesh.mesh = cyl
+		_pool_material = StandardMaterial3D.new()
+		_pool_material.albedo_color = Color(0.2, 0.5, 1.0, 0.4)
+		_pool_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		_pool_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_pool_material.emission_enabled = true
+		_pool_material.emission = Color(0.2, 0.5, 1.0)
+		_pool_material.emission_energy_multiplier = 0.5
+		_pool_mesh.material_override = _pool_material
+		add_child(_pool_mesh)
 
 	func _physics_process(_delta: float) -> void:
 		if GameState.state != GameState.State.PLAY:
@@ -81,17 +103,12 @@ class HolyWaterPool extends Node2D:
 					var eid := enemy.get_instance_id()
 					if _hit_cooldowns.has(eid):
 						continue
-					if position.distance_to(enemy.position) < radius:
+					var dx: float = position.x - enemy.position.x
+					var dz: float = position.z - enemy.position.z
+					if sqrt(dx * dx + dz * dz) < radius:
 						enemy.take_damage(damage)
 						_hit_cooldowns[eid] = hit_cooldown
-		queue_redraw()
-
-	func _draw() -> void:
-		var alpha := 0.4 * (1.0 - float(_timer) / duration)
-		draw_circle(Vector2.ZERO, radius, Color(0.2, 0.5, 1.0, alpha))
-		draw_arc(Vector2.ZERO, radius, 0, TAU, 24, Color(0.4, 0.7, 1.0, alpha * 1.5), 1.0)
-		# Bubbling effect
-		for i in range(3):
-			var angle := (_timer * 0.1 + i * TAU / 3.0)
-			var bubble_pos := Vector2(cos(angle), sin(angle)) * radius * 0.5
-			draw_circle(bubble_pos, 1.5, Color(0.6, 0.8, 1.0, alpha * 2.0))
+		# Fade alpha
+		if _pool_material:
+			var alpha := 0.4 * (1.0 - float(_timer) / duration)
+			_pool_material.albedo_color = Color(0.2, 0.5, 1.0, alpha)

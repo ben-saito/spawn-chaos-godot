@@ -7,22 +7,22 @@
 [ext_resource type="Script" path="res://entities/player/weapons/lightning_weapon.gd" id="5_lightning"]
 [ext_resource type="Script" path="res://entities/player/weapons/holy_water_weapon.gd" id="6_hw"]
 
-[node name="Player" type="CharacterBody2D"]
+[node name="Player" type="CharacterBody3D"]
 script = ExtResource("1_player")
 
-[node name="Weapons" type="Node2D" parent="."]
+[node name="Weapons" type="Node3D" parent="."]
 
-[node name="AuraWeapon" type="Node2D" parent="Weapons"]
+[node name="AuraWeapon" type="Node3D" parent="Weapons"]
 script = ExtResource("2_aura")
 
-[node name="MissileWeapon" type="Node2D" parent="Weapons"]
+[node name="MissileWeapon" type="Node3D" parent="Weapons"]
 script = ExtResource("3_missile")
 
-[node name="OrbitBladeWeapon" type="Node2D" parent="Weapons"]
+[node name="OrbitBladeWeapon" type="Node3D" parent="Weapons"]
 script = ExtResource("4_blade")
 
-[node name="LightningWeapon" type="Node2D" parent="Weapons"]
+[node name="LightningWeapon" type="Node3D" parent="Weapons"]
 script = ExtResource("5_lightning")
 
-[node name="HolyWaterWeapon" type="Node2D" parent="Weapons"]
+[node name="HolyWaterWeapon" type="Node3D" parent="Weapons"]
 script = ExtResource("6_hw")

@@ -21,6 +21,12 @@ signal chat_command_received(command: Dictionary)
 signal spawn_log_added(entry: String)
 signal event_log_added(entry: String)
 
+# Effects
+signal damage_dealt(pos: Vector3, amount: int, is_crit: bool)
+signal enemy_death_effect(pos: Vector3, color: Color, size: float)
+signal screen_shake(intensity: float, duration: float)
+signal boss_warning(enemy_name: String)
+
 # Lifecycle
 signal game_over()
 signal game_reset()

@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/weapon_select.gd" id="1_ws"]
+[ext_resource type="Script" path="res://ui/weapon_select_draw.gd" id="2_draw"]
+
+[node name="WeaponSelect" type="CanvasLayer"]
+layer = 12
+script = ExtResource("1_ws")
+
+[node name="DrawLayer" type="Node2D" parent="."]
+script = ExtResource("2_draw")

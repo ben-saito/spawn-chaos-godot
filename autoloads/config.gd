@@ -2,14 +2,23 @@ extends Node
 ## Pure constants – no mutable state.
 
 # Screen
-const SCREEN_W := 256
-const SCREEN_H := 224
+const SCREEN_W := 1280
+const SCREEN_H := 720
+
+# 3D World dimensions (in 3D units)
+const WORLD_W := 120.0
+const WORLD_H := 90.0
+
+# Treasure chests
+const CHEST_SPAWN_INTERVAL := 45.0  # seconds between chest spawns
+const MAX_CHESTS := 3                # max chests on map at once
+const CHEST_PICKUP_RANGE := 1.5      # distance to open chest
 
 # Physics / frame rate
 const PHYSICS_FPS := 30
 
 # Game-points pool (keyboard spawns / gimmicks)
-const INITIAL_GAME_POINTS := 200
+const INITIAL_GAME_POINTS := 2000
 const GAME_POINTS_RECOVERY := 5        # per second
 const MAX_GAME_POINTS := 99999
 

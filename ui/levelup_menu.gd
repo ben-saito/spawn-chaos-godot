@@ -2,23 +2,23 @@ extends CanvasLayer
 ## Level-up upgrade selection screen.
 
 const UPGRADES := {
-	"unlock_missile":   { "name": "Magic Missile", "desc": "Unlock homing missile" },
-	"unlock_blade":     { "name": "Orbit Blade", "desc": "Unlock rotating blades" },
-	"unlock_lightning": { "name": "Lightning", "desc": "Unlock lightning strike" },
-	"unlock_holy_water":{ "name": "Holy Water", "desc": "Unlock holy water pools" },
-	"aura_damage":      { "name": "Aura Power+", "desc": "Aura damage +10" },
-	"aura_range":       { "name": "Aura Range+", "desc": "Aura range +6" },
-	"missile_damage":   { "name": "Missile Power+", "desc": "Missile damage +8" },
-	"missile_cooldown": { "name": "Missile Speed+", "desc": "Missile cooldown -8" },
-	"blade_add":        { "name": "Blade+1", "desc": "Add 1 orbit blade" },
-	"blade_damage":     { "name": "Blade Power+", "desc": "Blade damage +5" },
-	"lightning_damage":  { "name": "Lightning Power+", "desc": "Lightning damage +15" },
-	"lightning_cooldown":{ "name": "Lightning Speed+", "desc": "Lightning cooldown -15" },
-	"hw_damage":        { "name": "HolyWater Power+", "desc": "Holy water damage +3" },
-	"hw_duration":      { "name": "HolyWater Time+", "desc": "Holy water duration +30" },
-	"speed_up":         { "name": "Speed Up", "desc": "Movement speed +0.3" },
-	"max_hp":           { "name": "Max HP+", "desc": "Max HP +20" },
-	"heal":             { "name": "Heal", "desc": "Restore 30 HP" },
+	"unlock_missile":   { "name": "マジックミサイル", "desc": "自動追尾弾を解放" },
+	"unlock_blade":     { "name": "回転刃", "desc": "周囲を回る刃を解放" },
+	"unlock_lightning": { "name": "雷撃", "desc": "自動落雷を解放" },
+	"unlock_holy_water":{ "name": "ホーリーウォーター", "desc": "設置型ダメージゾーンを解放" },
+	"aura_damage":      { "name": "オーラ威力+", "desc": "オーラのダメージ+10" },
+	"aura_range":       { "name": "オーラ射程+", "desc": "オーラの射程+1.0" },
+	"missile_damage":   { "name": "ミサイル威力+", "desc": "ミサイルのダメージ+8" },
+	"missile_cooldown": { "name": "ミサイル速射", "desc": "発射間隔短縮" },
+	"blade_add":        { "name": "回転刃追加", "desc": "刃を1枚追加" },
+	"blade_damage":     { "name": "回転刃威力+", "desc": "刃のダメージ+5" },
+	"lightning_damage":  { "name": "雷撃威力+", "desc": "落雷のダメージ+15" },
+	"lightning_cooldown":{ "name": "雷撃速射", "desc": "落雷の間隔短縮" },
+	"hw_damage":        { "name": "聖水威力+", "desc": "聖水のダメージ+3" },
+	"hw_duration":      { "name": "聖水持続+", "desc": "聖水の持続時間延長" },
+	"speed_up":         { "name": "移動速度+", "desc": "移動速度アップ" },
+	"max_hp":           { "name": "最大HP+", "desc": "最大HP+20" },
+	"heal":             { "name": "HP回復", "desc": "HPを30回復" },
 }
 
 var choices: Array[String] = []
@@ -54,7 +54,7 @@ func _process(_delta: float) -> void:
 			GameState.state = GameState.State.PLAY
 			break
 
-func get_available_upgrades(player: CharacterBody2D) -> Array[String]:
+func get_available_upgrades(player: CharacterBody3D) -> Array[String]:
 	var available: Array[String] = []
 	var weapons = player.get_node("Weapons") if player.has_node("Weapons") else null
 	# Always offer stat upgrades

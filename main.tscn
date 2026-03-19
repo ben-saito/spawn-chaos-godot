@@ -1,34 +1,49 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://entities/player/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://ui/hud.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://ui/levelup_menu.tscn" id="4_levelup"]
 [ext_resource type="PackedScene" path="res://ui/game_over_screen.tscn" id="5_gameover"]
+[ext_resource type="PackedScene" path="res://ui/weapon_select.tscn" id="6_weapon_select"]
+[ext_resource type="PackedScene" path="res://ui/tutorial.tscn" id="7_tutorial"]
+[ext_resource type="Script" path="res://spawning/spawn_manager.gd" id="8_spawn"]
+[ext_resource type="Script" path="res://gimmicks/gimmick_manager.gd" id="9_gimmick"]
+[ext_resource type="Script" path="res://twitcasting/chat_connector.gd" id="10_chat"]
+[ext_resource type="PackedScene" path="res://ui/slot_roulette.tscn" id="11_slot"]
 
-[node name="Main" type="Node2D"]
+[node name="Main" type="Node3D"]
 script = ExtResource("1_main")
 
-[node name="GameWorld" type="Node2D" parent="."]
+[node name="GameWorld" type="Node3D" parent="."]
 
 [node name="Player" parent="GameWorld" instance=ExtResource("2_player")]
 
-[node name="Enemies" type="Node2D" parent="GameWorld"]
+[node name="Enemies" type="Node3D" parent="GameWorld"]
 
-[node name="PlayerProjectiles" type="Node2D" parent="GameWorld"]
+[node name="PlayerProjectiles" type="Node3D" parent="GameWorld"]
 
-[node name="EnemyProjectiles" type="Node2D" parent="GameWorld"]
+[node name="EnemyProjectiles" type="Node3D" parent="GameWorld"]
 
-[node name="Effects" type="Node2D" parent="GameWorld"]
+[node name="Effects" type="Node3D" parent="GameWorld"]
 
 [node name="SpawnManager" type="Node" parent="."]
+script = ExtResource("8_spawn")
 
 [node name="GimmickManager" type="Node" parent="."]
+script = ExtResource("9_gimmick")
 
 [node name="ChatConnector" type="Node" parent="."]
+script = ExtResource("10_chat")
 
 [node name="HUD" parent="." instance=ExtResource("3_hud")]
 
 [node name="LevelUpMenu" parent="." instance=ExtResource("4_levelup")]
 
 [node name="GameOverScreen" parent="." instance=ExtResource("5_gameover")]
+
+[node name="WeaponSelect" parent="." instance=ExtResource("6_weapon_select")]
+
+[node name="Tutorial" parent="." instance=ExtResource("7_tutorial")]
+
+[node name="SlotRoulette" parent="." instance=ExtResource("11_slot")]

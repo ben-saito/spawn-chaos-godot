@@ -20,15 +20,16 @@ func _draw() -> void:
 	_draw_spawn_log()
 	_draw_spawn_guide()
 	_draw_event_banner()
+	_draw_combo()
 
-func _draw_hp_bar(player: CharacterBody2D) -> void:
-	var x := 4.0
-	var y := 4.0
-	var w := 60.0
-	var h := 6.0
+func _draw_hp_bar(player) -> void:
+	var x := 20.0
+	var y := 16.0
+	var w := 200.0
+	var h := 18.0
 	# Label
-	draw_string(ThemeDB.fallback_font, Vector2(x, y + 5), "HP", HORIZONTAL_ALIGNMENT_LEFT, -1, 7, Color.WHITE)
-	var bar_x := x + 16
+	draw_string(ThemeDB.fallback_font, Vector2(x, y + 14), "HP", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
+	var bar_x := x + 40
 	# Background
 	draw_rect(Rect2(bar_x, y, w, h), Color(0.2, 0.2, 0.2))
 	# Fill
@@ -41,56 +42,69 @@ func _draw_hp_bar(player: CharacterBody2D) -> void:
 	draw_rect(Rect2(bar_x, y, w * ratio, h), bar_color)
 	# Text
 	var hp_text := "%d/%d" % [player.hp, player.max_hp]
-	draw_string(ThemeDB.fallback_font, Vector2(bar_x + 2, y + 5), hp_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 6, Color.WHITE)
+	draw_string(ThemeDB.fallback_font, Vector2(bar_x + 6, y + 14), hp_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color.WHITE)
 
 func _draw_timer() -> void:
 	var sec := GameState.elapsed_seconds()
 	var m := int(sec) / 60
 	var s := int(sec) % 60
 	var text := "%02d:%02d" % [m, s]
-	draw_string(ThemeDB.fallback_font, Vector2(Config.SCREEN_W - 34, 9), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color.WHITE)
+	draw_string(ThemeDB.fallback_font, Vector2(Config.SCREEN_W - 100, 28), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color.WHITE)
 
 func _draw_points() -> void:
 	var text := "PT:%d" % GameState.game_points
-	draw_string(ThemeDB.fallback_font, Vector2(Config.SCREEN_W - 44, 19), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 7, Color(1, 0.9, 0.15))
+	draw_string(ThemeDB.fallback_font, Vector2(Config.SCREEN_W - 150, 56), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(1, 0.9, 0.15))
 
 func _draw_enemy_count() -> void:
 	var scene = get_tree().current_scene
 	var container = scene.find_child("Enemies") if scene else null
 	var count: int = container.get_child_count() if container else 0
-	draw_string(ThemeDB.fallback_font, Vector2(4, 20), "ENEMY:%d" % count, HORIZONTAL_ALIGNMENT_LEFT, -1, 7, Color(1, 0.6, 0.3))
+	draw_string(ThemeDB.fallback_font, Vector2(20, 56), "敵数:%d" % count, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(1, 0.6, 0.3))
 
-func _draw_xp_bar(player: CharacterBody2D) -> void:
-	var y := Config.SCREEN_H - 6.0
+func _draw_xp_bar(player) -> void:
+	var y := Config.SCREEN_H - 16.0
 	var w := float(Config.SCREEN_W)
-	draw_rect(Rect2(0, y, w, 4), Color(0.15, 0.15, 0.2))
+	draw_rect(Rect2(0, y, w, 10), Color(0.15, 0.15, 0.2))
 	var ratio: float = float(player.xp) / float(player.xp_to_next) if player.xp_to_next > 0 else 0.0
-	draw_rect(Rect2(0, y, w * ratio, 4), Color(0.3, 0.6, 1.0))
+	draw_rect(Rect2(0, y, w * ratio, 10), Color(0.3, 0.6, 1.0))
 
-func _draw_level(player: CharacterBody2D) -> void:
-	draw_string(ThemeDB.fallback_font, Vector2(4, Config.SCREEN_H - 10), "Lv.%d" % player.level, HORIZONTAL_ALIGNMENT_LEFT, -1, 7, Color.WHITE)
+func _draw_level(player) -> void:
+	draw_string(ThemeDB.fallback_font, Vector2(20, Config.SCREEN_H - 28), "Lv.%d" % player.level, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
 
 func _draw_spawn_log() -> void:
-	var x := 4.0
-	var y := Config.SCREEN_H - 60.0
+	var x := 20.0
+	var y := Config.SCREEN_H - 180.0
 	for i in range(hud.spawn_log.size()):
-		draw_string(ThemeDB.fallback_font, Vector2(x, y + i * 9), hud.spawn_log[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 6, Color(0.7, 0.7, 0.7))
+		draw_string(ThemeDB.fallback_font, Vector2(x, y + i * 22), hud.spawn_log[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(0.7, 0.7, 0.7))
 
 func _draw_spawn_guide() -> void:
-	var x := Config.SCREEN_W - 62.0
-	var y := Config.SCREEN_H - 60.0
+	var x := Config.SCREEN_W - 200.0
+	var y := Config.SCREEN_H - 180.0
 	var guides := [
-		"1:Slime  10",
-		"2:Goblin 20",
-		"3:Skel   30",
-		"4:Ogre   80",
-		"5:Dragon 500",
+		"1:スライム  10",
+		"2:ゴブリン  20",
+		"3:スケルトン 30",
+		"4:オーガ    80",
+		"5:ドラゴン  500",
 	]
 	for i in range(guides.size()):
-		draw_string(ThemeDB.fallback_font, Vector2(x, y + i * 8), guides[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 6, Color(0.5, 0.5, 0.6))
+		draw_string(ThemeDB.fallback_font, Vector2(x, y + i * 20), guides[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(0.5, 0.5, 0.6))
 
 func _draw_event_banner() -> void:
 	if hud._event_timer > 0 and hud._event_text != "":
 		var alpha := minf(hud._event_timer, 1.0)
 		var text: String = hud._event_text
-		draw_string(ThemeDB.fallback_font, Vector2(Config.SCREEN_W / 2.0 - 40, 30), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(1, 1, 0, alpha))
+		# Background box for better readability
+		var tw := text.length() * 14
+		draw_rect(Rect2(Config.SCREEN_W / 2.0 - tw / 2.0 - 10, 55, tw + 20, 35), Color(0, 0, 0, 0.5 * alpha))
+		draw_string(ThemeDB.fallback_font, Vector2(Config.SCREEN_W / 2.0 - tw / 2.0, 80), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color(1, 1, 0, alpha))
+
+func _draw_combo() -> void:
+	if GameState.combo_count >= 3:
+		var combo_text := "%d コンボ! x%.1f" % [GameState.combo_count, GameState.combo_multiplier]
+		var pulse := 1.0 + sin(GameState.elapsed_frames * 0.2) * 0.1
+		var font_size := int(24 * pulse)
+		var color := Color(1, 0.5, 0) if GameState.combo_count < 10 else Color(1, 0.2, 0.2)
+		if GameState.combo_count >= 20:
+			color = Color(1, 0, 1)  # Purple for insane combos
+		draw_string(ThemeDB.fallback_font, Vector2(Config.SCREEN_W / 2.0 - 80, 120), combo_text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)

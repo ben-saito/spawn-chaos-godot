@@ -10,8 +10,10 @@ func _ready() -> void:
 	_udp = PacketPeerUDP.new()
 	var err := _udp.bind(PORT, "127.0.0.1")
 	if err != OK:
-		push_warning("SimulatorReceiver: Failed to bind UDP port %d" % PORT)
+		print("SimulatorReceiver: FAILED to bind UDP port %d (error %d)" % [PORT, err])
 		_udp = null
+	else:
+		print("SimulatorReceiver: Listening on UDP port %d" % PORT)
 
 func _process(_delta: float) -> void:
 	if _udp == null:
@@ -25,6 +27,7 @@ func _process(_delta: float) -> void:
 		if parts.size() >= 2:
 			username = parts[0]
 			message = parts[1]
+		print("SimulatorReceiver: got [%s] %s" % [username, message])
 		message_received.emit(username, message)
 
 func _exit_tree() -> void:

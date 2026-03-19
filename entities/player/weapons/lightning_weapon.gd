@@ -27,7 +27,7 @@ func _weapon_update() -> void:
 	_spawn_effect(target.position)
 	_cooldown_timer = lightning_cooldown
 
-func _spawn_effect(pos: Vector2) -> void:
+func _spawn_effect(pos: Vector3) -> void:
 	var effect := LightningEffect.new()
 	effect.position = pos
 	var scene = get_tree().current_scene
@@ -37,34 +37,75 @@ func _spawn_effect(pos: Vector2) -> void:
 		_effects.append(effect)
 
 
-class LightningEffect extends Node2D:
+class LightningEffect extends Node3D:
 	var _timer: int = 0
 	const DURATION := 8
-	var _segments: Array = []
+	var _bolt_meshes: Array = []
 
 	func _ready() -> void:
-		# Generate zigzag segments
-		var y := position.y
-		var segments_arr: Array = []
-		var current_y := -40.0
-		while current_y < 0:
-			var next_y := current_y + randf_range(4, 8)
-			var offset_x := randf_range(-4, 4)
-			segments_arr.append({"from": Vector2(offset_x, current_y), "to": Vector2(randf_range(-4, 4), next_y)})
+		# Create zigzag bolt from above
+		var bolt_mat := StandardMaterial3D.new()
+		bolt_mat.albedo_color = Color(1, 1, 0.5)
+		bolt_mat.emission_enabled = true
+		bolt_mat.emission = Color(1, 1, 0.5)
+		bolt_mat.emission_energy_multiplier = 3.0
+		bolt_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+
+		var current_y := 8.0
+		var current_x := 0.0
+		var current_z := 0.0
+		while current_y > 0.1:
+			var next_y := maxf(current_y - randf_range(0.8, 1.5), 0.0)
+			var next_x := randf_range(-0.4, 0.4)
+			var next_z := randf_range(-0.4, 0.4)
+			# Create a thin cylinder/box segment
+			var seg := MeshInstance3D.new()
+			var box := BoxMesh.new()
+			var seg_len := Vector3(next_x - current_x, next_y - current_y, next_z - current_z).length()
+			box.size = Vector3(0.06, seg_len, 0.06)
+			seg.mesh = box
+			seg.material_override = bolt_mat
+			# Position at midpoint
+			seg.position = Vector3(
+				(current_x + next_x) / 2.0,
+				(current_y + next_y) / 2.0,
+				(current_z + next_z) / 2.0
+			)
+			add_child(seg)
+			# Look at target (must be in tree first)
+			var dir := Vector3(next_x - current_x, next_y - current_y, next_z - current_z).normalized()
+			if dir.length_squared() > 0.001:
+				seg.look_at(seg.global_position + dir, Vector3.RIGHT)
+			_bolt_meshes.append(seg)
 			current_y = next_y
-		_segments = segments_arr
+			current_x = next_x
+			current_z = next_z
+
+		# Impact sphere
+		var impact := MeshInstance3D.new()
+		var impact_sphere := SphereMesh.new()
+		impact_sphere.radius = 0.4
+		impact_sphere.height = 0.8
+		impact.mesh = impact_sphere
+		var impact_mat := StandardMaterial3D.new()
+		impact_mat.albedo_color = Color(1, 1, 0.8, 0.6)
+		impact_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		impact_mat.emission_enabled = true
+		impact_mat.emission = Color(1, 1, 0.8)
+		impact_mat.emission_energy_multiplier = 2.0
+		impact_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		impact.material_override = impact_mat
+		impact.position = Vector3(0, 0.2, 0)
+		add_child(impact)
+		_bolt_meshes.append(impact)
 
 	func _physics_process(_delta: float) -> void:
 		_timer += 1
 		if _timer >= DURATION:
 			queue_free()
 			return
-		queue_redraw()
-
-	func _draw() -> void:
+		# Fade out
 		var alpha := 1.0 - float(_timer) / DURATION
-		for seg in _segments:
-			draw_line(seg["from"], seg["to"], Color(1, 1, 0.5, alpha), 2.0)
-			draw_line(seg["from"] + Vector2(1, 0), seg["to"] + Vector2(1, 0), Color(1, 1, 1, alpha * 0.5), 1.0)
-		# Impact circle
-		draw_circle(Vector2.ZERO, 4.0 * alpha, Color(1, 1, 0.8, alpha * 0.4))
+		for mesh in _bolt_meshes:
+			if is_instance_valid(mesh) and mesh.material_override:
+				mesh.material_override.albedo_color.a = alpha

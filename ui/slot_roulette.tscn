@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/slot_roulette.gd" id="1_slot"]
+[ext_resource type="Script" path="res://ui/slot_roulette_draw.gd" id="2_draw"]
+
+[node name="SlotRoulette" type="CanvasLayer"]
+layer = 14
+script = ExtResource("1_slot")
+
+[node name="DrawLayer" type="Node2D" parent="."]
+script = ExtResource("2_draw")

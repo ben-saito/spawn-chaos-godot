@@ -48,7 +48,7 @@ static func get_cost(enemy_key: String) -> int:
 		return ENEMY_DEFS[enemy_key]["cost"]
 	return 0
 
-static func create_enemy(enemy_key: String, player_ref: CharacterBody2D) -> Area2D:
+static func create_enemy(enemy_key: String, player_ref: CharacterBody3D) -> Area3D:
 	if not AI_SCRIPTS.has(enemy_key) or not ENEMY_DEFS.has(enemy_key):
 		return null
 
@@ -66,7 +66,7 @@ static func create_enemy(enemy_key: String, player_ref: CharacterBody2D) -> Area
 	def.split_into = data.get("split_into", "")
 	def.split_count = data.get("split_count", 0)
 
-	var enemy = Area2D.new()
+	var enemy = Area3D.new()
 	enemy.set_script(AI_SCRIPTS[enemy_key])
 	enemy.initialize(def, player_ref)
 	return enemy

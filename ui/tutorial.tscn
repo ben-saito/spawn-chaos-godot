@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/tutorial.gd" id="1_tut"]
+[ext_resource type="Script" path="res://ui/tutorial_draw.gd" id="2_draw"]
+
+[node name="Tutorial" type="CanvasLayer"]
+layer = 13
+script = ExtResource("1_tut")
+
+[node name="DrawLayer" type="Node2D" parent="."]
+script = ExtResource("2_draw")

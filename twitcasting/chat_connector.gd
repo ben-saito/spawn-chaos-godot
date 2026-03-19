@@ -10,6 +10,7 @@ var _points = null
 var _command_queue: Array = []
 
 func _ready() -> void:
+	print("ChatConnector: _ready() called")
 	_points = preload("res://twitcasting/viewer_points.gd").new()
 	# Load .env
 	var env := _load_env()
@@ -40,6 +41,7 @@ func _on_comment(data: Dictionary) -> void:
 	_process_message(data["user_id"], data["username"], data["message"])
 
 func _on_simulator_message(username: String, message: String) -> void:
+	print("ChatConnector: simulator message from [%s]: %s" % [username, message])
 	_process_message("sim_" + username, username, message)
 
 func _process_message(user_id: String, username: String, message: String) -> void:
