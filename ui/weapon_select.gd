@@ -26,8 +26,8 @@ func _process(_delta: float) -> void:
 	visible = true
 	_draw_node.queue_redraw()
 
-	# T key: open Twitcasting setup
-	if Input.is_key_pressed(KEY_T):
+	# T or 6 key: open Twitcasting setup
+	if Input.is_key_pressed(KEY_T) or Input.is_key_pressed(KEY_6):
 		var tc_setup = get_tree().current_scene.find_child("TwitcastingSetup")
 		if tc_setup and tc_setup.has_method("show_setup"):
 			tc_setup.show_setup()

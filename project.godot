@@ -56,6 +56,10 @@ ui_accept={
 
 common/physics_ticks_per_second=30
 
+[internationalization]
+
+locale/fallback="ja"
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

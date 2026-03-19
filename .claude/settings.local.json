@@ -18,7 +18,10 @@
       "Bash(mkdir -p $MOVIE)",
       "Bash(godot --write-movie $MOVIE/frame.png --fixed-fps 10 --quit-after 30 --script test/test_core_game.gd)",
       "Bash(godot:*)",
-      "Bash(ffmpeg:*)"
+      "Bash(ffmpeg:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }

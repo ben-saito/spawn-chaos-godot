@@ -86,6 +86,9 @@ func _setup_hp_bar() -> void:
 
 func _setup_summoner_label() -> void:
 	_summoner_label = Label3D.new()
+	var jp_font = load("res://assets/fonts/NotoSansJP-Regular.ttf")
+	if jp_font:
+		_summoner_label.font = jp_font
 	_summoner_label.font_size = 96
 	_summoner_label.outline_size = 20
 	_summoner_label.outline_modulate = Color(0, 0, 0, 0.9)

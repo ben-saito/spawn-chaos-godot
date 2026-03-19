@@ -61,6 +61,7 @@ var _TreasureChest = preload("res://entities/treasure_chest.gd")
 var _chest_spawn_timer: float = 0.0
 
 func _ready() -> void:
+	_setup_japanese_font()
 	_setup_3d_scene()
 
 	# Wire up spawn manager (scripts now attached via .tscn)
@@ -76,6 +77,14 @@ func _ready() -> void:
 	EventBus.boss_warning.connect(_on_boss_warning)
 	EventBus.player_damaged.connect(_on_player_hit)
 	player.leveled_up.connect(_on_player_leveled_up)
+
+func _setup_japanese_font() -> void:
+	var font := load("res://assets/fonts/NotoSansJP-Regular.ttf") as Font
+	if font:
+		ThemeDB.fallback_font = font
+		print("Japanese font loaded")
+	else:
+		print("WARNING: Japanese font not found")
 
 func _setup_3d_scene() -> void:
 	# Camera: orthographic top-down with slight angle
