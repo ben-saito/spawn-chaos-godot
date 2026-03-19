@@ -26,6 +26,13 @@ func _process(_delta: float) -> void:
 	visible = true
 	_draw_node.queue_redraw()
 
+	# T key: open Twitcasting setup
+	if Input.is_key_pressed(KEY_T):
+		var tc_setup = get_tree().current_scene.find_child("TwitcastingSetup")
+		if tc_setup and tc_setup.has_method("show_setup"):
+			tc_setup.show_setup()
+		return
+
 	# Check for weapon selection (keys 2-5, since aura is always available)
 	for key_num in [2, 3, 4, 5]:
 		var key_code: int = KEY_1 + key_num - 1

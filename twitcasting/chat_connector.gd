@@ -5,24 +5,32 @@ const _CommandParser = preload("res://twitcasting/command_parser.gd")
 const _ViewerPoints = preload("res://twitcasting/viewer_points.gd")
 const _EnemyFactory = preload("res://spawning/enemy_factory.gd")
 
+signal connection_status_changed(connected: bool, message: String)
+
 var _client: Node  # TwitcastingClient
 var _points = null
 var _command_queue: Array = []
+var _api_key: String = ""
+var _live_http: HTTPRequest
 
 func _ready() -> void:
 	print("ChatConnector: _ready() called")
 	_points = preload("res://twitcasting/viewer_points.gd").new()
 	# Load .env
 	var env := _load_env()
-	var token: String = env.get("TWITCASTING_TOKEN", "")
+	_api_key = env.get("TWITCASTING_TOKEN", "")
 	var movie_id: String = env.get("TWITCASTING_MOVIE_ID", "")
 
 	# Setup Twitcasting client
 	_client = Node.new()
 	_client.set_script(preload("res://twitcasting/twitcasting_client.gd"))
 	add_child(_client)
-	_client.setup(token, movie_id)
+	_client.setup(_api_key, movie_id)
 	_client.comment_received.connect(_on_comment)
+
+	# HTTP for live movie lookup
+	_live_http = HTTPRequest.new()
+	add_child(_live_http)
 
 	# Setup UDP simulator
 	var sim := Node.new()
@@ -102,3 +110,56 @@ func _load_env() -> Dictionary:
 func _on_game_reset() -> void:
 	_points.reset()
 	_command_queue.clear()
+
+## Connect to a Twitcasting user's live stream by user_id
+func connect_to_user(user_id: String) -> void:
+	if _api_key == "":
+		connection_status_changed.emit(false, "APIトークンが未設定です (.envにTWITCASTING_TOKENを設定)")
+		return
+	connection_status_changed.emit(false, "%s の配信を検索中..." % user_id)
+	var url := "https://apiv2.twitcasting.tv/users/%s/current_live" % user_id
+	var headers := [
+		"Authorization: Bearer %s" % _api_key,
+		"Accept: application/json",
+	]
+	var on_done := func(result: int, code: int, _h: PackedStringArray, body: PackedByteArray) -> void:
+		if result != HTTPRequest.RESULT_SUCCESS:
+			connection_status_changed.emit(false, "通信エラー")
+			return
+		if code == 404:
+			connection_status_changed.emit(false, "%s は現在配信していません" % user_id)
+			return
+		if code != 200:
+			connection_status_changed.emit(false, "APIエラー (code: %d)" % code)
+			return
+		var json = JSON.parse_string(body.get_string_from_utf8())
+		if json == null:
+			connection_status_changed.emit(false, "レスポンス解析エラー")
+			return
+		var movie = json.get("movie", {})
+		var movie_id: String = str(movie.get("id", ""))
+		if movie_id == "" or movie_id == "0":
+			connection_status_changed.emit(false, "ライブ配信が見つかりません")
+			return
+		# Success! Update client
+		_client.update_movie_id(movie_id)
+		var title: String = movie.get("title", "")
+		connection_status_changed.emit(true, "接続完了! ムービーID: %s\n%s" % [movie_id, title])
+		# Save user_id for next time
+		_save_user_id(user_id)
+	_live_http.request_completed.connect(on_done, CONNECT_ONE_SHOT)
+	_live_http.request(url, headers)
+
+func get_api_key() -> String:
+	return _api_key
+
+func _save_user_id(user_id: String) -> void:
+	var file := FileAccess.open("user://twitcasting_user.txt", FileAccess.WRITE)
+	if file:
+		file.store_string(user_id)
+
+func load_saved_user_id() -> String:
+	var file := FileAccess.open("user://twitcasting_user.txt", FileAccess.READ)
+	if file:
+		return file.get_as_text().strip_edges()
+	return ""

@@ -58,3 +58,20 @@ func _on_request_completed(result: int, code: int, _headers: PackedStringArray, 
 
 func is_active() -> bool:
 	return _active
+
+func update_movie_id(new_movie_id: String) -> void:
+	_movie_id = new_movie_id
+	_last_comment_id = 0
+	if _api_key != "" and _movie_id != "":
+		_active = true
+		if _http_request == null:
+			_http_request = HTTPRequest.new()
+			add_child(_http_request)
+			_http_request.request_completed.connect(_on_request_completed)
+		if _poll_timer == null:
+			_poll_timer = Timer.new()
+			_poll_timer.wait_time = 2.0
+			_poll_timer.autostart = true
+			_poll_timer.timeout.connect(_poll)
+			add_child(_poll_timer)
+	print("TwitcastingClient: movie_id updated to %s" % new_movie_id)

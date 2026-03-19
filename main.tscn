@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://entities/player/player.tscn" id="2_player"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://gimmicks/gimmick_manager.gd" id="9_gimmick"]
 [ext_resource type="Script" path="res://twitcasting/chat_connector.gd" id="10_chat"]
 [ext_resource type="PackedScene" path="res://ui/slot_roulette.tscn" id="11_slot"]
+[ext_resource type="PackedScene" path="res://ui/twitcasting_setup.tscn" id="12_tc_setup"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -47,3 +48,5 @@ script = ExtResource("10_chat")
 [node name="Tutorial" parent="." instance=ExtResource("7_tutorial")]
 
 [node name="SlotRoulette" parent="." instance=ExtResource("11_slot")]
+
+[node name="TwitcastingSetup" parent="." instance=ExtResource("12_tc_setup")]
