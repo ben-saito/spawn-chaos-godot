@@ -31,11 +31,13 @@ func _process(delta: float) -> void:
 	_cursor_blink += delta
 	_draw_node.queue_redraw()
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not _active:
 		return
 	if not (event is InputEventKey and event.pressed):
 		return
+	# Consume ALL key events while setup is active (prevent leak to game)
+	get_viewport().set_input_as_handled()
 
 	if event.keycode == KEY_ESCAPE:
 		_active = false
