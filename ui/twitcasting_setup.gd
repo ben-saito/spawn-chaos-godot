@@ -1,11 +1,9 @@
 extends CanvasLayer
-## Twitcasting connection setup. Token + User ID input, no .env needed.
+## Twitcasting connection setup. User ID only - token handled server-side.
 
 var _draw_node: Node2D
 var _active: bool = false
-var _token_input: String = ""
 var _user_id_input: String = ""
-var _active_field: int = 0  # 0=token, 1=user_id
 var _status_message: String = ""
 var _status_ok: bool = false
 var _cursor_blink: float = 0.0
@@ -13,8 +11,6 @@ var _cursor_blink: float = 0.0
 func _ready() -> void:
 	_draw_node = $DrawLayer
 	visible = false
-	# Load saved values
-	_token_input = _load_saved("twitcasting_token.txt")
 	_user_id_input = _load_saved("twitcasting_user.txt")
 
 func _get_connector() -> Node:
@@ -28,7 +24,6 @@ func show_setup() -> void:
 	visible = true
 	_status_message = ""
 	_status_ok = false
-	_active_field = 0 if _token_input == "" else 1
 
 func _process(delta: float) -> void:
 	if not _active:
@@ -48,40 +43,22 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 
-	if event.keycode == KEY_TAB:
-		# Switch between fields
-		_active_field = 1 - _active_field
-		get_viewport().set_input_as_handled()
-		return
-
 	if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
-		if _active_field == 0 and _token_input != "":
-			_active_field = 1  # Move to user ID field
-		elif _user_id_input != "" and _token_input != "":
+		if _user_id_input != "":
 			_connect()
 		get_viewport().set_input_as_handled()
 		return
 
 	if event.keycode == KEY_BACKSPACE:
-		if _active_field == 0:
-			if _token_input.length() > 0:
-				_token_input = _token_input.substr(0, _token_input.length() - 1)
-		else:
-			if _user_id_input.length() > 0:
-				_user_id_input = _user_id_input.substr(0, _user_id_input.length() - 1)
+		if _user_id_input.length() > 0:
+			_user_id_input = _user_id_input.substr(0, _user_id_input.length() - 1)
 		get_viewport().set_input_as_handled()
 		return
 
 	if event.unicode > 0:
 		var ch := char(event.unicode)
-		if _active_field == 0:
-			# Token: allow most printable chars
-			if event.unicode >= 32:
-				_token_input += ch
-		else:
-			# User ID: alphanumeric, underscore, hyphen, colon
-			if ch.is_valid_identifier() or ch == "_" or ch == "-" or ch == "@" or ch == ":":
-				_user_id_input += ch
+		if ch.is_valid_identifier() or ch == "_" or ch == "-" or ch == "@" or ch == ":":
+			_user_id_input += ch
 		get_viewport().set_input_as_handled()
 
 func _connect() -> void:
@@ -89,11 +66,8 @@ func _connect() -> void:
 	if connector == null:
 		_status_message = "エラー: ChatConnectorが見つかりません"
 		return
-	# Save token and update connector's api_key
-	_save_data("twitcasting_token.txt", _token_input)
 	_save_data("twitcasting_user.txt", _user_id_input)
-	connector._api_key = _token_input
-	_status_message = "接続中..."
+	_status_message = "%s の配信を検索中..." % _user_id_input
 	_status_ok = false
 	if not connector.connection_status_changed.is_connected(_on_connection_status):
 		connector.connection_status_changed.connect(_on_connection_status)

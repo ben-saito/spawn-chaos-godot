@@ -113,15 +113,21 @@ func _on_game_reset() -> void:
 
 ## Connect to a Twitcasting user's live stream by user_id
 func connect_to_user(user_id: String) -> void:
-	if _api_key == "":
-		connection_status_changed.emit(false, "APIトークンが未設定です（設定画面で入力してください）")
-		return
 	connection_status_changed.emit(false, "%s の配信を検索中..." % user_id)
-	var url := "https://apiv2.twitcasting.tv/users/%s/current_live" % user_id
-	var headers := [
-		"Authorization: Bearer %s" % _api_key,
-		"Accept: application/json",
-	]
+	# Use proxy API on web, direct API with token on desktop
+	var url: String
+	var headers: Array
+	if OS.has_feature("web"):
+		# Web: use server-side proxy (no token needed)
+		url = "/api/twitcasting/live?user_id=%s" % user_id.uri_encode()
+		headers = ["Accept: application/json"]
+	else:
+		# Desktop: use direct API with token
+		if _api_key == "":
+			connection_status_changed.emit(false, "APIトークンが未設定です")
+			return
+		url = "https://apiv2.twitcasting.tv/users/%s/current_live" % user_id
+		headers = ["Authorization: Bearer %s" % _api_key, "Accept: application/json"]
 	var on_done := func(result: int, code: int, _h: PackedStringArray, body: PackedByteArray) -> void:
 		if result != HTTPRequest.RESULT_SUCCESS:
 			connection_status_changed.emit(false, "通信エラー")
@@ -136,22 +142,23 @@ func connect_to_user(user_id: String) -> void:
 		if json == null:
 			connection_status_changed.emit(false, "レスポンス解析エラー")
 			return
-		var movie = json.get("movie", {})
-		var movie_id: String = str(movie.get("id", ""))
+		var movie_id: String = ""
+		var title: String = ""
+		if OS.has_feature("web"):
+			movie_id = str(json.get("movie_id", ""))
+			title = json.get("title", "")
+		else:
+			var movie = json.get("movie", {})
+			movie_id = str(movie.get("id", ""))
+			title = movie.get("title", "")
 		if movie_id == "" or movie_id == "0":
 			connection_status_changed.emit(false, "ライブ配信が見つかりません")
 			return
-		# Success! Update client
 		_client.update_movie_id(movie_id)
-		var title: String = movie.get("title", "")
 		connection_status_changed.emit(true, "接続完了! ムービーID: %s\n%s" % [movie_id, title])
-		# Save user_id for next time
 		_save_user_id(user_id)
 	_live_http.request_completed.connect(on_done, CONNECT_ONE_SHOT)
 	_live_http.request(url, headers)
-
-func get_api_key() -> String:
-	return _api_key
 
 func _save_user_id(user_id: String) -> void:
 	var file := FileAccess.open("user://twitcasting_user.txt", FileAccess.WRITE)

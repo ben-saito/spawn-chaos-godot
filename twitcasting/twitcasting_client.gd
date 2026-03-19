@@ -31,11 +31,14 @@ func setup(api_key: String, movie_id: String) -> void:
 func _poll() -> void:
 	if not _active or _http_request.get_http_client_status() != HTTPClient.STATUS_DISCONNECTED:
 		return
-	var url := "https://apiv2.twitcasting.tv/movies/%s/comments" % _movie_id
-	var headers := [
-		"Authorization: Bearer %s" % _api_key,
-		"Accept: application/json",
-	]
+	var url: String
+	var headers: Array
+	if OS.has_feature("web"):
+		url = "/api/twitcasting/comments?movie_id=%s&since_id=%d" % [_movie_id, _last_comment_id]
+		headers = ["Accept: application/json"]
+	else:
+		url = "https://apiv2.twitcasting.tv/movies/%s/comments" % _movie_id
+		headers = ["Authorization: Bearer %s" % _api_key, "Accept: application/json"]
 	_http_request.request(url, headers)
 
 func _on_request_completed(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
