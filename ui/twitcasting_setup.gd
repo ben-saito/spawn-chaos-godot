@@ -71,11 +71,22 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 
+	# Number keys via keycode (unicode may be 0 for these)
+	if event.keycode >= KEY_0 and event.keycode <= KEY_9:
+		_user_id_input += str(event.keycode - KEY_0)
+		return
+	# Numpad
+	if event.keycode >= KEY_KP_0 and event.keycode <= KEY_KP_9:
+		_user_id_input += str(event.keycode - KEY_KP_0)
+		return
+	# Letters and symbols via unicode
 	if event.unicode > 0:
 		var ch := char(event.unicode)
-		if ch.is_valid_identifier() or ch == "_" or ch == "-" or ch == "@" or ch == ":" or ch == "." or (ch >= "0" and ch <= "9"):
+		# Skip digits here since handled above by keycode
+		if ch >= "0" and ch <= "9":
+			return
+		if ch.is_valid_identifier() or ch == "_" or ch == "-" or ch == "@" or ch == ":" or ch == ".":
 			_user_id_input += ch
-		get_viewport().set_input_as_handled()
 
 func _connect() -> void:
 	var connector = _get_connector()
