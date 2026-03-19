@@ -38,7 +38,7 @@ func _poll() -> void:
 		headers = ["Accept: application/json"]
 	else:
 		url = "https://apiv2.twitcasting.tv/movies/%s/comments" % _movie_id
-		headers = ["Authorization: Bearer %s" % _api_key, "Accept: application/json"]
+		headers = ["Authorization: Basic %s" % _api_key, "Accept: application/json"]
 	_http_request.request(url, headers)
 
 func _on_request_completed(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:

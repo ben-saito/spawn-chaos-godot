@@ -10,7 +10,7 @@ signal connection_status_changed(connected: bool, message: String)
 var _client: Node  # TwitcastingClient
 var _points = null
 var _command_queue: Array = []
-var _api_key: String = ""
+var _api_key: String = ""  # Basic auth string for desktop
 var _live_http: HTTPRequest
 
 func _ready() -> void:
@@ -18,7 +18,13 @@ func _ready() -> void:
 	_points = preload("res://twitcasting/viewer_points.gd").new()
 	# Load .env
 	var env := _load_env()
-	_api_key = env.get("TWITCASTING_TOKEN", "")
+	# Support both old TWITCASTING_TOKEN and new CLIENT_ID/SECRET
+	var client_id: String = env.get("TWITCASTING_CLIENT_ID", "")
+	var client_secret: String = env.get("TWITCASTING_CLIENT_SECRET", "")
+	if client_id != "" and client_secret != "":
+		_api_key = Marshalls.utf8_to_base64(client_id + ":" + client_secret)
+	else:
+		_api_key = env.get("TWITCASTING_TOKEN", "")
 	var movie_id: String = env.get("TWITCASTING_MOVIE_ID", "")
 
 	# Setup Twitcasting client
@@ -122,12 +128,12 @@ func connect_to_user(user_id: String) -> void:
 		url = "/api/twitcasting/live?user_id=%s" % user_id.uri_encode()
 		headers = ["Accept: application/json"]
 	else:
-		# Desktop: use direct API with token
+		# Desktop: use direct API with Basic auth
 		if _api_key == "":
-			connection_status_changed.emit(false, "APIトークンが未設定です")
+			connection_status_changed.emit(false, ".envにTWITCASTING_CLIENT_IDとTWITCASTING_CLIENT_SECRETを設定してください")
 			return
 		url = "https://apiv2.twitcasting.tv/users/%s/current_live" % user_id
-		headers = ["Authorization: Bearer %s" % _api_key, "Accept: application/json"]
+		headers = ["Authorization: Basic %s" % _api_key, "Accept: application/json"]
 	var on_done := func(result: int, code: int, _h: PackedStringArray, body: PackedByteArray) -> void:
 		if result != HTTPRequest.RESULT_SUCCESS:
 			connection_status_changed.emit(false, "通信エラー")
