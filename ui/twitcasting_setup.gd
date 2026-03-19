@@ -71,7 +71,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event.unicode > 0:
 		var ch := char(event.unicode)
-		if ch.is_valid_identifier() or ch == "_" or ch == "-" or ch == "@" or ch == ":":
+		if ch.is_valid_identifier() or ch == "_" or ch == "-" or ch == "@" or ch == ":" or ch == "." or (ch >= "0" and ch <= "9"):
 			_user_id_input += ch
 		get_viewport().set_input_as_handled()
 
