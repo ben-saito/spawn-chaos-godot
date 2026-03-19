@@ -1,17 +1,107 @@
 extends CanvasLayer
-## Twitcasting connection setup. User ID only - token handled server-side.
+## Twitcasting connection setup using proper UI controls.
 
-var _draw_node: Node2D
 var _active: bool = false
-var _user_id_input: String = ""
 var _status_message: String = ""
 var _status_ok: bool = false
-var _cursor_blink: float = 0.0
+
+var _panel: PanelContainer
+var _line_edit: LineEdit
+var _status_label: Label
+var _connect_btn: Button
+var _close_btn: Button
 
 func _ready() -> void:
-	_draw_node = $DrawLayer
 	visible = false
-	_user_id_input = _load_saved("twitcasting_user.txt")
+	_build_ui()
+	var saved := _load_saved("twitcasting_user.txt")
+	if saved != "":
+		_line_edit.text = saved
+
+func _build_ui() -> void:
+	# Full-screen dark overlay
+	var overlay := ColorRect.new()
+	overlay.color = Color(0, 0, 0, 0.8)
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(overlay)
+
+	# Center panel
+	_panel = PanelContainer.new()
+	_panel.set_anchors_preset(Control.PRESET_CENTER)
+	_panel.custom_minimum_size = Vector2(500, 300)
+	_panel.position = Vector2(640 - 250, 360 - 150)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.06, 0.06, 0.1, 0.95)
+	style.border_color = Color(0.4, 0.3, 0.8)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(8)
+	style.set_content_margin_all(20)
+	_panel.add_theme_stylebox_override("panel", style)
+	add_child(_panel)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+	_panel.add_child(vbox)
+
+	# Title
+	var title := Label.new()
+	title.text = "Twitcasting 接続設定"
+	title.add_theme_font_size_override("font_size", 24)
+	title.add_theme_color_override("font_color", Color(0.6, 0.5, 1.0))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	# Description
+	var desc := Label.new()
+	desc.text = "TwitcastingのユーザーIDを入力してください\n（配信ページURL twitcasting.tv/ の後の部分）"
+	desc.add_theme_font_size_override("font_size", 14)
+	desc.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
+	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(desc)
+
+	# Input field
+	_line_edit = LineEdit.new()
+	_line_edit.placeholder_text = "例: c:username"
+	_line_edit.custom_minimum_size = Vector2(0, 40)
+	_line_edit.add_theme_font_size_override("font_size", 20)
+	_line_edit.text_submitted.connect(_on_text_submitted)
+	vbox.add_child(_line_edit)
+
+	# Button row
+	var btn_row := HBoxContainer.new()
+	btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	btn_row.add_theme_constant_override("separation", 20)
+	vbox.add_child(btn_row)
+
+	_connect_btn = Button.new()
+	_connect_btn.text = "接続"
+	_connect_btn.custom_minimum_size = Vector2(120, 36)
+	_connect_btn.add_theme_font_size_override("font_size", 18)
+	_connect_btn.pressed.connect(_on_connect_pressed)
+	btn_row.add_child(_connect_btn)
+
+	_close_btn = Button.new()
+	_close_btn.text = "閉じる"
+	_close_btn.custom_minimum_size = Vector2(120, 36)
+	_close_btn.add_theme_font_size_override("font_size", 18)
+	_close_btn.pressed.connect(_on_close_pressed)
+	btn_row.add_child(_close_btn)
+
+	# Status
+	_status_label = Label.new()
+	_status_label.text = ""
+	_status_label.add_theme_font_size_override("font_size", 16)
+	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(_status_label)
+
+	# Info
+	var info := Label.new()
+	info.text = "ユーザーIDを入力するだけで配信に自動接続!\n視聴者は !spawn スライム 等のコマンドで参加"
+	info.add_theme_font_size_override("font_size", 12)
+	info.add_theme_color_override("font_color", Color(0.4, 0.4, 0.5))
+	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(info)
 
 func _get_connector() -> Node:
 	var scene = get_tree().current_scene
@@ -22,92 +112,61 @@ func _get_connector() -> Node:
 func show_setup() -> void:
 	_active = true
 	visible = true
-	_status_message = ""
+	_status_label.text = ""
 	_status_ok = false
+	# Pause entire tree except this node - prevents all other input handling
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	get_tree().paused = true
+	# Focus the text input
+	_line_edit.call_deferred("grab_focus")
 
-func _process(delta: float) -> void:
-	if not _active:
-		return
-	_cursor_blink += delta
-	_draw_node.queue_redraw()
+func _on_text_submitted(_text: String) -> void:
+	_do_connect()
+
+func _on_connect_pressed() -> void:
+	_do_connect()
+
+func _on_close_pressed() -> void:
+	_close()
+
+func _close() -> void:
+	_active = false
+	visible = false
+	get_tree().paused = false
 
 func _input(event: InputEvent) -> void:
 	if not _active:
 		return
-	if not (event is InputEventKey and event.pressed):
-		return
-	# Consume ALL key events while setup is active (prevent leak to game)
-	get_viewport().set_input_as_handled()
-
-	if event.keycode == KEY_ESCAPE:
-		_active = false
-		visible = false
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		_close()
 		get_viewport().set_input_as_handled()
-		return
 
-	if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
-		if _user_id_input != "":
-			_connect()
-		get_viewport().set_input_as_handled()
+func _do_connect() -> void:
+	var user_id := _line_edit.text.strip_edges()
+	if user_id == "":
 		return
-
-	if event.keycode == KEY_BACKSPACE:
-		if _user_id_input.length() > 0:
-			_user_id_input = _user_id_input.substr(0, _user_id_input.length() - 1)
-		get_viewport().set_input_as_handled()
-		return
-
-	# Ctrl+V / Cmd+V: paste from clipboard
-	if event.keycode == KEY_V and (event.ctrl_pressed or event.meta_pressed):
-		var clipboard := DisplayServer.clipboard_get()
-		if clipboard != "":
-			_user_id_input += clipboard.strip_edges()
-		get_viewport().set_input_as_handled()
-		return
-
-	# Ctrl+A / Cmd+A: select all (clear)
-	if event.keycode == KEY_A and (event.ctrl_pressed or event.meta_pressed):
-		_user_id_input = ""
-		get_viewport().set_input_as_handled()
-		return
-
-	# Number keys via keycode (unicode may be 0 for these)
-	if event.keycode >= KEY_0 and event.keycode <= KEY_9:
-		_user_id_input += str(event.keycode - KEY_0)
-		return
-	# Numpad
-	if event.keycode >= KEY_KP_0 and event.keycode <= KEY_KP_9:
-		_user_id_input += str(event.keycode - KEY_KP_0)
-		return
-	# Letters and symbols via unicode
-	if event.unicode > 0:
-		var ch := char(event.unicode)
-		# Skip digits here since handled above by keycode
-		if ch >= "0" and ch <= "9":
-			return
-		if ch.is_valid_identifier() or ch == "_" or ch == "-" or ch == "@" or ch == ":" or ch == ".":
-			_user_id_input += ch
-
-func _connect() -> void:
 	var connector = _get_connector()
 	if connector == null:
-		_status_message = "エラー: ChatConnectorが見つかりません"
+		_status_label.text = "エラー: ChatConnectorが見つかりません"
+		_status_label.add_theme_color_override("font_color", Color(1, 0.5, 0.3))
 		return
-	_save_data("twitcasting_user.txt", _user_id_input)
-	_status_message = "%s の配信を検索中..." % _user_id_input
-	_status_ok = false
+	_save_data("twitcasting_user.txt", user_id)
+	_status_label.text = "%s の配信を検索中..." % user_id
+	_status_label.add_theme_color_override("font_color", Color(1, 0.7, 0.3))
 	if not connector.connection_status_changed.is_connected(_on_connection_status):
 		connector.connection_status_changed.connect(_on_connection_status)
-	connector.connect_to_user(_user_id_input)
+	connector.connect_to_user(user_id)
 
 func _on_connection_status(connected: bool, message: String) -> void:
 	_status_ok = connected
-	_status_message = message
+	_status_label.text = message
 	if connected:
+		_status_label.add_theme_color_override("font_color", Color(0.3, 1, 0.4))
 		await get_tree().create_timer(2.0).timeout
 		if _active:
-			_active = false
-			visible = false
+			_close()
+	else:
+		_status_label.add_theme_color_override("font_color", Color(1, 0.5, 0.3))
 
 func _load_saved(filename: String) -> String:
 	var file := FileAccess.open("user://" + filename, FileAccess.READ)
