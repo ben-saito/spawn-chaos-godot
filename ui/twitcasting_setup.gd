@@ -5,6 +5,7 @@ var _active: bool = false
 var _status_message: String = ""
 var _status_ok: bool = false
 
+var _ui_root: Control
 var _panel: PanelContainer
 var _line_edit: LineEdit
 var _status_label: Label
@@ -19,11 +20,31 @@ func _ready() -> void:
 		_line_edit.text = saved
 
 func _build_ui() -> void:
+	# Set Japanese font theme for all UI controls
+	var jp_font = load("res://assets/fonts/NotoSansJP-Regular.ttf")
+	if jp_font:
+		var theme := Theme.new()
+		theme.set_default_font(jp_font)
+		theme.set_default_font_size(16)
+		# Apply to this CanvasLayer's children via a Control wrapper
+		var root_control := Control.new()
+		root_control.set_anchors_preset(Control.PRESET_FULL_RECT)
+		root_control.theme = theme
+		add_child(root_control)
+		# All UI will be added under this root_control
+		_ui_root = root_control
+
+	# If _ui_root wasn't created (font missing), use self as parent
+	if _ui_root == null:
+		_ui_root = Control.new()
+		_ui_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+		add_child(_ui_root)
+
 	# Full-screen dark overlay
 	var overlay := ColorRect.new()
 	overlay.color = Color(0, 0, 0, 0.8)
 	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(overlay)
+	_ui_root.add_child(overlay)
 
 	# Center panel
 	_panel = PanelContainer.new()
@@ -37,7 +58,7 @@ func _build_ui() -> void:
 	style.set_corner_radius_all(8)
 	style.set_content_margin_all(20)
 	_panel.add_theme_stylebox_override("panel", style)
-	add_child(_panel)
+	_ui_root.add_child(_panel)
 
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 12)
