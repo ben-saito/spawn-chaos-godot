@@ -48,9 +48,10 @@ func _build_ui() -> void:
 
 	# Center panel
 	_panel = PanelContainer.new()
-	_panel.set_anchors_preset(Control.PRESET_CENTER)
 	_panel.custom_minimum_size = Vector2(500, 300)
-	_panel.position = Vector2(640 - 250, 360 - 150)
+	_panel.set_anchors_preset(Control.PRESET_CENTER)
+	_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.06, 0.06, 0.1, 0.95)
 	style.border_color = Color(0.4, 0.3, 0.8)
