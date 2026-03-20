@@ -117,14 +117,20 @@ func _draw_spawn_log() -> void:
 		draw_string(ThemeDB.fallback_font, Vector2(x, y + i * 22), hud.spawn_log[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(0.7, 0.7, 0.7))
 
 func _draw_viewer_commands() -> void:
-	var x := Config.SCREEN_W - 260.0
-	var y := Config.SCREEN_H - 280.0
-	# Background panel
-	draw_rect(Rect2(x - 10, y - 22, 260, 270), Color(0, 0, 0, 0.65))
-	draw_rect(Rect2(x - 10, y - 22, 260, 270), Color(0.5, 0.3, 0.8, 0.6), false, 2.0)
-	# Title
-	draw_string(ThemeDB.fallback_font, Vector2(x, y), "視聴者コマンド", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.8, 0.6, 1.0))
-	y += 26
+	var x := Config.SCREEN_W - 265.0
+	var y := Config.SCREEN_H - 290.0
+	var panel_w := 255.0
+	var panel_h := 280.0
+	# Solid background panel (fully opaque for stream readability)
+	draw_rect(Rect2(x - 10, y - 24, panel_w, panel_h), Color(0.05, 0.03, 0.1))
+	draw_rect(Rect2(x - 10, y - 24, panel_w, panel_h), Color(0.6, 0.4, 1.0, 0.8), false, 2.0)
+	# Title bar
+	draw_rect(Rect2(x - 10, y - 24, panel_w, 28), Color(0.15, 0.08, 0.3))
+	draw_string(ThemeDB.fallback_font, Vector2(x, y - 2), "視聴者コマンド", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(1.0, 0.85, 0.4))
+	y += 12
+	# Separator
+	draw_rect(Rect2(x - 6, y, panel_w - 8, 1), Color(0.4, 0.3, 0.6))
+	y += 10
 	# Spawn commands
 	var cmds := [
 		["!spawn スライム", "10pt"],
@@ -136,10 +142,13 @@ func _draw_viewer_commands() -> void:
 		["!spawn ドラゴン", "500pt"],
 	]
 	for cmd in cmds:
-		draw_string(ThemeDB.fallback_font, Vector2(x, y), cmd[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.7, 0.85, 0.7))
-		draw_string(ThemeDB.fallback_font, Vector2(x + 200, y), cmd[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.9, 0.9, 0.5))
+		draw_string(ThemeDB.fallback_font, Vector2(x, y), cmd[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.8, 1.0, 0.8))
+		draw_string(ThemeDB.fallback_font, Vector2(x + 195, y), cmd[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(1.0, 1.0, 0.5))
 		y += 18
-	y += 6
+	y += 4
+	# Separator
+	draw_rect(Rect2(x - 6, y, panel_w - 8, 1), Color(0.4, 0.3, 0.6))
+	y += 8
 	# Gimmick commands
 	var gimmicks := [
 		["!gimmick アイス", "50pt"],
@@ -147,8 +156,8 @@ func _draw_viewer_commands() -> void:
 		["!gimmick 重力", "120pt"],
 	]
 	for g in gimmicks:
-		draw_string(ThemeDB.fallback_font, Vector2(x, y), g[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.6, 0.75, 1.0))
-		draw_string(ThemeDB.fallback_font, Vector2(x + 200, y), g[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.9, 0.9, 0.5))
+		draw_string(ThemeDB.fallback_font, Vector2(x, y), g[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.7, 0.85, 1.0))
+		draw_string(ThemeDB.fallback_font, Vector2(x + 195, y), g[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(1.0, 1.0, 0.5))
 		y += 18
 	# Cost discount note
 	var mult: float = GameState.get_viewer_cost_multiplier()
