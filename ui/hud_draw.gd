@@ -117,27 +117,29 @@ func _draw_spawn_log() -> void:
 		draw_string(ThemeDB.fallback_font, Vector2(x, y + i * 22), hud.spawn_log[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(0.7, 0.7, 0.7))
 
 func _draw_viewer_commands() -> void:
-	var x := Config.SCREEN_W - 230.0
-	var y := Config.SCREEN_H - 220.0
+	var x := Config.SCREEN_W - 260.0
+	var y := Config.SCREEN_H - 280.0
 	# Background panel
-	draw_rect(Rect2(x - 8, y - 18, 228, 195), Color(0, 0, 0, 0.35))
-	draw_rect(Rect2(x - 8, y - 18, 228, 195), Color(0.4, 0.3, 0.6, 0.3), false, 1.0)
+	draw_rect(Rect2(x - 10, y - 22, 260, 270), Color(0, 0, 0, 0.65))
+	draw_rect(Rect2(x - 10, y - 22, 260, 270), Color(0.5, 0.3, 0.8, 0.6), false, 2.0)
 	# Title
-	draw_string(ThemeDB.fallback_font, Vector2(x, y), "視聴者コマンド", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.6, 0.5, 0.9))
-	y += 20
+	draw_string(ThemeDB.fallback_font, Vector2(x, y), "視聴者コマンド", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.8, 0.6, 1.0))
+	y += 26
 	# Spawn commands
 	var cmds := [
 		["!spawn スライム", "10pt"],
 		["!spawn ゴブリン", "20pt"],
 		["!spawn スケルトン", "30pt"],
+		["!spawn バット", "25pt"],
+		["!spawn マッシュルーム", "15pt"],
 		["!spawn オーガ", "80pt"],
 		["!spawn ドラゴン", "500pt"],
 	]
 	for cmd in cmds:
-		draw_string(ThemeDB.fallback_font, Vector2(x, y), cmd[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.6, 0.7, 0.6))
-		draw_string(ThemeDB.fallback_font, Vector2(x + 170, y), cmd[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.7, 0.7, 0.5))
-		y += 15
-	y += 5
+		draw_string(ThemeDB.fallback_font, Vector2(x, y), cmd[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.7, 0.85, 0.7))
+		draw_string(ThemeDB.fallback_font, Vector2(x + 200, y), cmd[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.9, 0.9, 0.5))
+		y += 18
+	y += 6
 	# Gimmick commands
 	var gimmicks := [
 		["!gimmick アイス", "50pt"],
@@ -145,15 +147,15 @@ func _draw_viewer_commands() -> void:
 		["!gimmick 重力", "120pt"],
 	]
 	for g in gimmicks:
-		draw_string(ThemeDB.fallback_font, Vector2(x, y), g[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.5, 0.6, 0.8))
-		draw_string(ThemeDB.fallback_font, Vector2(x + 170, y), g[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.7, 0.7, 0.5))
-		y += 15
+		draw_string(ThemeDB.fallback_font, Vector2(x, y), g[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.6, 0.75, 1.0))
+		draw_string(ThemeDB.fallback_font, Vector2(x + 200, y), g[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.9, 0.9, 0.5))
+		y += 18
 	# Cost discount note
 	var mult: float = GameState.get_viewer_cost_multiplier()
 	if mult < 1.0:
-		y += 3
+		y += 4
 		var pct: int = int((1.0 - mult) * 100)
-		draw_string(ThemeDB.fallback_font, Vector2(x, y), "現在 %d%%OFF!" % pct, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(1, 0.3, 0.3))
+		draw_string(ThemeDB.fallback_font, Vector2(x, y), "現在 %d%%OFF!" % pct, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 0.3, 0.3))
 
 func _draw_event_banner() -> void:
 	if hud._event_timer > 0 and hud._event_text != "":
