@@ -33,13 +33,22 @@ func initialize(enemy_def, player_ref: CharacterBody3D) -> void:
 	speed = enemy_def.speed
 	enemy_key = enemy_def.key
 	player = player_ref
-	# Setup collision
+	# Setup collision (Area3D detection)
 	_collision_shape = CollisionShape3D.new()
 	var sphere := SphereShape3D.new()
 	sphere.radius = def_data.size / 8.0
 	_collision_shape.shape = sphere
 	_collision_shape.position = Vector3(0, 0.3, 0)
 	add_child(_collision_shape)
+	# Add StaticBody3D so player CharacterBody3D collides with enemy
+	var body := StaticBody3D.new()
+	var body_col := CollisionShape3D.new()
+	var body_shape := SphereShape3D.new()
+	body_shape.radius = def_data.size / 8.0
+	body_col.shape = body_shape
+	body_col.position = Vector3(0, 0.3, 0)
+	body.add_child(body_col)
+	add_child(body)
 	# Setup mesh container
 	_mesh_container = Node3D.new()
 	_mesh_container.name = "MeshContainer"

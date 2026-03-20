@@ -14,17 +14,19 @@ const _EnemyFactory = preload("res://spawning/enemy_factory.gd")
 @onready var levelup_menu: CanvasLayer = $LevelUpMenu
 @onready var chat_connector_node: Node = $ChatConnector
 
-# Point recovery accumulator
-var _point_recovery_acc: float = 0.0
-var _spawn_key_held: Dictionary = {}
-var _gimmick_key_held: Dictionary = {}
-
 # Event flags
 var _half_time_triggered: bool = false
 var _last_stand_triggered: bool = false
+var _phase2_triggered: bool = false
+var _phase3_triggered: bool = false
+var _30sec_triggered: bool = false
+var _10sec_triggered: bool = false
 
 # Auto-spawn
 var _next_boss_idx: int = 0
+
+# Final rush screen flash
+var _final_rush_flash: float = 0.0
 
 # Fake viewer names for auto-spawned enemies
 const FAKE_VIEWERS := [
@@ -55,10 +57,6 @@ var _boss_warning_name: String = ""
 var _DamageNumber = preload("res://effects/damage_number.gd")
 var _KillEffect = preload("res://effects/kill_effect.gd")
 var _XpOrb = preload("res://effects/xp_orb.gd")
-var _TreasureChest = preload("res://entities/treasure_chest.gd")
-
-# Treasure chest timer
-var _chest_spawn_timer: float = 0.0
 
 func _ready() -> void:
 	_setup_japanese_font()
@@ -200,34 +198,37 @@ func _physics_process(delta: float) -> void:
 func _update_play(delta: float) -> void:
 	GameState.elapsed_frames += 1
 
-	# Game-point recovery (+5 per second)
-	_point_recovery_acc += delta
-	if _point_recovery_acc >= 1.0:
-		_point_recovery_acc -= 1.0
-		GameState.game_points = mini(
-			GameState.game_points + Config.GAME_POINTS_RECOVERY,
-			Config.MAX_GAME_POINTS
-		)
+	# Countdown timer
+	GameState.remaining_time -= delta
+	if GameState.remaining_time <= 0:
+		GameState.remaining_time = 0
+		GameState.game_result = "streamer_win"
+		GameState.state = GameState.State.GAMEOVER
+		return
+
+	# Update phase based on remaining_time
+	if GameState.remaining_time <= Config.PHASE3_TIME:
+		GameState.phase = 3
+	elif GameState.remaining_time <= Config.PHASE2_TIME:
+		GameState.phase = 2
+	else:
+		GameState.phase = 1
 
 	# Apply gimmick effects to player
 	_apply_gimmick_effects()
 
-	# Keyboard spawn input
-	_handle_spawn_input()
-	# Keyboard gimmick input
-	_handle_gimmick_input()
-
-	# Auto-spawn enemies (disabled for testing)
-	#_auto_spawn()
-
-	# Spawn treasure chests
-	_update_chest_spawn(delta)
+	# Auto-spawn enemies
+	_auto_spawn()
 
 	# Process chat commands
 	_process_chat_commands()
 
 	# Check events
 	_check_events()
+
+	# Final rush flash effect
+	if GameState.phase == 3:
+		_final_rush_flash += delta * 4.0
 
 func _auto_spawn() -> void:
 	var elapsed: int = int(GameState.elapsed_seconds())
@@ -240,14 +241,38 @@ func _auto_spawn() -> void:
 	var interval: int = wave[1]
 	var pool: Array = wave[2]
 	var count: int = wave[3]
+
+	# Scale spawn rate with phase
+	var rate_mult: float = 1.0
+	match GameState.phase:
+		2:
+			rate_mult = Config.SPAWN_RATE_MULT_PHASE2
+		3:
+			rate_mult = Config.SPAWN_RATE_MULT_PHASE3
+	var adjusted_interval: int = maxi(1, int(float(interval) / rate_mult))
+
+	# Phase 2+: expand pool with stronger enemies
+	var spawn_pool: Array = pool.duplicate()
+	if GameState.phase >= 2:
+		if not spawn_pool.has("ogre"):
+			spawn_pool.append("ogre")
+		if not spawn_pool.has("slime_king"):
+			spawn_pool.append("slime_king")
+	if GameState.phase >= 3:
+		if not spawn_pool.has("dragon"):
+			spawn_pool.append("dragon")
+		if not spawn_pool.has("wolfpack"):
+			spawn_pool.append("wolfpack")
+
 	# Spawn at interval (max 50 enemies)
-	if GameState.elapsed_frames % interval == 0 and enemy_count < 50:
+	if GameState.elapsed_frames % adjusted_interval == 0 and enemy_count < 50:
 		for i in range(count):
-			var key: String = pool[randi() % pool.size()]
+			var key: String = spawn_pool[randi() % spawn_pool.size()]
 			var enemy = spawn_manager_node.spawn_from_edge(key)
 			if enemy and enemy.has_method("set_summoner"):
 				var fake_name: String = FAKE_VIEWERS[randi() % FAKE_VIEWERS.size()]
 				enemy.set_summoner(fake_name)
+				GameState.viewer_total_spawns += 1
 				var disp: String = _EnemyFactory.DISPLAY_NAMES.get(key, key)
 				EventBus.spawn_log_added.emit("%s が %s を召喚!" % [fake_name, disp])
 	# Boss schedule (with warning 3 sec before)
@@ -258,33 +283,10 @@ func _auto_spawn() -> void:
 			var fake_name: String = FAKE_VIEWERS[randi() % FAKE_VIEWERS.size()]
 			if enemy and enemy.has_method("set_summoner"):
 				enemy.set_summoner(fake_name)
+				GameState.viewer_total_spawns += 1
 			var display: String = _EnemyFactory.DISPLAY_NAMES.get(boss_entry[1], boss_entry[1])
 			EventBus.boss_warning.emit(display)
 			_next_boss_idx += 1
-
-func _update_chest_spawn(delta: float) -> void:
-	_chest_spawn_timer += delta
-	if _chest_spawn_timer >= Config.CHEST_SPAWN_INTERVAL:
-		_chest_spawn_timer = 0.0
-		# Count existing chests
-		var chest_count := 0
-		for child in effects_container.get_children():
-			if child.has_method("_open_chest"):
-				chest_count += 1
-		if chest_count < Config.MAX_CHESTS:
-			_spawn_chest()
-
-func _spawn_chest() -> void:
-	var chest := Node3D.new()
-	chest.set_script(_TreasureChest)
-	# Random position within map, at least 5 units from edge
-	var pos := Vector3(
-		randf_range(5, Config.WORLD_W - 5),
-		0,
-		randf_range(5, Config.WORLD_H - 5)
-	)
-	chest.setup(pos, player)
-	effects_container.add_child(chest)
 
 func _update_gameover() -> void:
 	if Input.is_key_pressed(KEY_R):
@@ -321,33 +323,6 @@ func _update_gimmick_visuals() -> void:
 		else:
 			_environment.environment.fog_enabled = false
 
-func _handle_spawn_input() -> void:
-	for key in Config.SPAWN_KEYS:
-		if Input.is_key_pressed(key) and not _spawn_key_held.get(key, false):
-			_spawn_key_held[key] = true
-			var enemy_key: String = Config.SPAWN_KEYS[key]
-			var cost: int = _EnemyFactory.get_cost(enemy_key)
-			if GameState.game_points >= cost:
-				GameState.game_points -= cost
-				spawn_manager_node.spawn_from_edge(enemy_key)
-				var display_name: String = _EnemyFactory.DISPLAY_NAMES.get(enemy_key, enemy_key)
-				EventBus.spawn_log_added.emit("%s -%dpt" % [display_name, cost])
-		elif not Input.is_key_pressed(key):
-			_spawn_key_held[key] = false
-
-func _handle_gimmick_input() -> void:
-	for key in Config.GIMMICK_KEYS:
-		if Input.is_key_pressed(key) and not _gimmick_key_held.get(key, false):
-			_gimmick_key_held[key] = true
-			var gimmick_key: String = Config.GIMMICK_KEYS[key]
-			var cost: int = Config.GIMMICK_COSTS[gimmick_key]
-			if GameState.game_points >= cost:
-				GameState.game_points -= cost
-				var duration: float = Config.GIMMICK_DURATIONS[gimmick_key]
-				EventBus.gimmick_activated.emit(gimmick_key, duration, "keyboard")
-		elif not Input.is_key_pressed(key):
-			_gimmick_key_held[key] = false
-
 func _process_chat_commands() -> void:
 	if chat_connector_node == null:
 		return
@@ -358,6 +333,7 @@ func _process_chat_commands() -> void:
 				var enemy = spawn_manager_node.spawn_from_edge(cmd["target"])
 				if enemy and enemy.has_method("set_summoner"):
 					enemy.set_summoner(cmd["username"])
+				GameState.viewer_total_spawns += 1
 				var display: String = _EnemyFactory.DISPLAY_NAMES.get(cmd["target"], cmd["target"])
 				EventBus.spawn_log_added.emit("%s が %s を召喚!" % [cmd["username"], display])
 			"gimmick":
@@ -372,14 +348,32 @@ func _check_events() -> void:
 	var hp_ratio := float(player.hp) / float(player.max_hp)
 	if hp_ratio <= 0.5 and not _half_time_triggered:
 		_half_time_triggered = true
-		GameState.game_points += 100
 		EventBus.event_log_added.emit("HALF TIME CHAOS!")
 	if hp_ratio <= 0.25 and not _last_stand_triggered:
 		_last_stand_triggered = true
-		GameState.game_points += 50
 		EventBus.event_log_added.emit("LAST STAND!")
 
+	# Phase transition events
+	var remaining: float = GameState.remaining_time
+	if remaining <= Config.PHASE2_TIME and not _phase2_triggered:
+		_phase2_triggered = true
+		EventBus.event_log_added.emit("フェーズ2: 敵が強くなる!")
+		EventBus.screen_shake.emit(0.15, 1.0)
+	if remaining <= Config.PHASE3_TIME and not _phase3_triggered:
+		_phase3_triggered = true
+		EventBus.event_log_added.emit("ファイナルラッシュ! 残り60秒!")
+		EventBus.screen_shake.emit(0.2, 1.5)
+	if remaining <= 30.0 and not _30sec_triggered:
+		_30sec_triggered = true
+		EventBus.event_log_added.emit("残り30秒!")
+		EventBus.screen_shake.emit(0.1, 0.5)
+	if remaining <= 10.0 and not _10sec_triggered:
+		_10sec_triggered = true
+		EventBus.event_log_added.emit("残り10秒!")
+		EventBus.screen_shake.emit(0.12, 0.5)
+
 func _on_game_over() -> void:
+	GameState.game_result = "viewer_win"
 	GameState.state = GameState.State.GAMEOVER
 
 func _on_enemy_killed(enemy_key: String, cost: int) -> void:
@@ -483,7 +477,8 @@ func _on_boss_warning(enemy_name: String) -> void:
 	EventBus.event_log_added.emit("WARNING: %s 出現!" % enemy_name)
 	EventBus.screen_shake.emit(0.15, 1.0)
 
-func _on_player_hit(amount: int, current_hp: int) -> void:
+func _on_player_hit(amount: int, _current_hp: int) -> void:
+	GameState.viewer_total_damage += amount
 	EventBus.screen_shake.emit(0.1, 0.2)
 
 var _camera_initialized: bool = false
@@ -523,10 +518,13 @@ func _reset_game() -> void:
 	GameState.reset()
 	_half_time_triggered = false
 	_last_stand_triggered = false
-	_point_recovery_acc = 0.0
+	_phase2_triggered = false
+	_phase3_triggered = false
+	_30sec_triggered = false
+	_10sec_triggered = false
+	_final_rush_flash = 0.0
 	_next_boss_idx = 0
 	_camera_initialized = false
-	_chest_spawn_timer = 0.0
 	# Remove all dynamic nodes
 	for child in enemies_container.get_children():
 		child.queue_free()
