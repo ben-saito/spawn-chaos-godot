@@ -22,7 +22,23 @@ Open the project in the Godot 4 editor by opening `project.godot`, or run from c
 godot --path .
 ```
 
+## Deployment
+
+コード変更をmainにマージ/プッシュする際は、必ずWebエクスポートを再ビルドしてからプッシュすること。
+
+```bash
+# 1. Webエクスポート再ビルド（.pckを更新）
+godot --headless --path . --export-release "Web" web_export/index.html
+
+# 2. 更新されたweb_exportをコミットに含める
+git add web_export/index.html web_export/index.pck
+```
+
+Vercelは `web_export/` ディレクトリを自動デプロイするため、`.pck` が古いままだと本番にコード変更が反映されない。
+
 ## Key Files
 
 - `project.godot` — Project settings and configuration (entry point for Godot editor)
 - `main.tscn` — Main scene (currently the root scene)
+- `web_export/` — Vercelデプロイ用のWebエクスポート出力先
+- `export_presets.cfg` — Godotエクスポート設定
