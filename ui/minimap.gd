@@ -18,7 +18,7 @@ func _draw() -> void:
 		return
 
 	var map_x := Config.SCREEN_W - MAP_SIZE - MAP_MARGIN
-	var map_y := MAP_MARGIN + 70  # below timer/points
+	var map_y := MAP_MARGIN + 140  # below timer/viewer stats
 
 	# Background
 	draw_rect(Rect2(map_x - 2, map_y - 2, MAP_SIZE + 4, MAP_SIZE + 4), Color(0.3, 0.35, 0.25, MAP_ALPHA), false, 2.0)
