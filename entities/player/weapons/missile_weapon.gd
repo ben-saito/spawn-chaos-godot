@@ -105,15 +105,6 @@ class MissileProjectile extends Node3D:
 		var old_pos := position
 		position += velocity
 		position.y = 0.3  # Float above ground
-		# Raycast for obstacle collision
-		var space := get_world_3d().direct_space_state
-		if space:
-			var query := PhysicsRayQueryParameters3D.create(old_pos, position)
-			query.collision_mask = 1
-			var hit := space.intersect_ray(query)
-			if not hit.is_empty():
-				queue_free()
-				return
 		# Check world bounds
 		if position.x < -2 or position.x > Config.WORLD_W + 2 \
 			or position.z < -2 or position.z > Config.WORLD_H + 2:
