@@ -99,7 +99,7 @@ func _run_assertions() -> void:
 	var gs = _root.get_node_or_null("/root/GameState")
 	if gs:
 		print("ASSERT PASS: GameState.state=%d (PLAY=0)" % gs.state)
-		print("ASSERT PASS: GameState.game_points=%d" % gs.game_points)
+		print("ASSERT PASS: GameState.score=%d" % gs.score)
 	else:
 		# Try finding by children
 		for child in _root.get_children():

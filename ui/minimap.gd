@@ -1,5 +1,5 @@
 extends Node2D
-## Minimap showing player, enemies, and treasure chests.
+## Minimap showing player and enemies.
 
 const MAP_SIZE := 160.0  # minimap pixel size
 const MAP_MARGIN := 20.0
@@ -31,33 +31,6 @@ func _draw() -> void:
 	# Draw paths (brown lines)
 	draw_rect(Rect2(map_x + MAP_SIZE * 0.1, map_y + MAP_SIZE / 2.0 - 1, MAP_SIZE * 0.8, 2), Color(0.3, 0.2, 0.1, 0.4))
 	draw_rect(Rect2(map_x + MAP_SIZE / 2.0 - 1, map_y + MAP_SIZE * 0.1, 2, MAP_SIZE * 0.8), Color(0.3, 0.2, 0.1, 0.4))
-
-	# Draw ruins (gray squares)
-	var ruins = scene.find_child("MapDecorations")
-	if ruins:
-		var ruins_node = ruins.find_child("Ruins")
-		if ruins_node:
-			for ruin in ruins_node.get_children():
-				var rx: float = map_x + ruin.position.x * sx
-				var rz: float = map_y + ruin.position.z * sz
-				draw_rect(Rect2(rx - 2, rz - 2, 4, 4), Color(0.5, 0.45, 0.4, 0.6))
-
-	# Draw treasure chests (yellow diamonds, blinking)
-	var effects = scene.find_child("Effects")
-	if effects:
-		for child in effects.get_children():
-			if child.has_method("_open_chest") and not child._opened:
-				var cx: float = map_x + child.position.x * sx
-				var cz: float = map_y + child.position.z * sz
-				var blink := 0.6 + sin(GameState.elapsed_frames * 0.15) * 0.4
-				# Diamond shape
-				var pts := PackedVector2Array([
-					Vector2(cx, cz - 4),
-					Vector2(cx + 4, cz),
-					Vector2(cx, cz + 4),
-					Vector2(cx - 4, cz),
-				])
-				draw_colored_polygon(pts, Color(1, 0.85, 0.1, blink))
 
 	# Draw enemies (red dots)
 	var enemies = scene.find_child("Enemies")

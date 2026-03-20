@@ -13,7 +13,7 @@ var _event_text: String = ""
 var _event_timer: float = 0.0
 
 func _on_spawn_log(entry: String) -> void:
-	var time_str := _format_time(GameState.elapsed_seconds())
+	var time_str := _format_time(GameState.remaining_time)
 	spawn_log.push_back("[%s] %s" % [time_str, entry])
 	if spawn_log.size() > MAX_LOG:
 		spawn_log.pop_front()

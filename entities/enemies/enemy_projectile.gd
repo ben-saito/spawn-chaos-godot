@@ -41,6 +41,7 @@ func _ready() -> void:
 func _physics_process(_delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:
 		return
+	var old_pos := position
 	position += velocity
 	_timer += 1
 	if _timer >= lifetime:
@@ -51,6 +52,17 @@ func _physics_process(_delta: float) -> void:
 		or position.z < -1 or position.z > Config.WORLD_H + 1:
 		queue_free()
 		return
+	# Raycast from old_pos to new position to check obstacle collision
+	var space := get_world_3d().direct_space_state
+	if space:
+		var query := PhysicsRayQueryParameters3D.create(old_pos, position)
+		query.collision_mask = 1  # Default layer (StaticBody3D)
+		query.exclude = []
+		var result := space.intersect_ray(query)
+		if not result.is_empty():
+			# Hit an obstacle - destroy projectile
+			queue_free()
+			return
 	# Check collision with player
 	var scene = get_tree().current_scene
 	var player_node = scene.find_child("Player") if scene else null

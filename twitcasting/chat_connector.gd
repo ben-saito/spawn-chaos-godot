@@ -68,7 +68,8 @@ func _process_message(user_id: String, username: String, message: String) -> voi
 
 	match cmd["command"]:
 		"spawn":
-			var cost: int = _EnemyFactory.get_cost(cmd["target"])
+			var base_cost: int = _EnemyFactory.get_cost(cmd["target"])
+			var cost: int = maxi(1, int(float(base_cost) * GameState.get_viewer_cost_multiplier()))
 			if _points.spend(user_id, cost):
 				_command_queue.append(cmd)
 			else:
@@ -80,7 +81,8 @@ func _process_message(user_id: String, username: String, message: String) -> voi
 					"cost": cost,
 				})
 		"gimmick":
-			var cost: int = Config.GIMMICK_COSTS.get(cmd["target"], 0)
+			var base_cost: int = Config.GIMMICK_COSTS.get(cmd["target"], 0)
+			var cost: int = maxi(1, int(float(base_cost) * GameState.get_viewer_cost_multiplier()))
 			if _points.spend(user_id, cost):
 				_command_queue.append(cmd)
 			else:

@@ -5,12 +5,12 @@ var _rng := RandomNumberGenerator.new()
 
 func generate() -> void:
 	_rng.seed = 12345  # Fixed seed for consistent map layout
-	_place_grass_patches(300)
-	_place_trees(40)
-	_place_bushes(60)
-	_place_rocks(35)
-	_place_ruins(8)
-	_place_fences(12)
+	_place_grass_patches(80)
+	_place_trees(10)
+	_place_bushes(15)
+	_place_rocks(10)
+	_place_ruins(2)
+	_place_fences(3)
 	_place_paths()
 
 # --- Grass ---
@@ -67,11 +67,20 @@ func _place_trees(count: int) -> void:
 		var tree := _create_tree(pos)
 		tree_container.add_child(tree)
 
-func _create_tree(pos: Vector3) -> Node3D:
-	var tree := Node3D.new()
+func _create_tree(pos: Vector3) -> StaticBody3D:
+	var tree := StaticBody3D.new()
 	tree.position = pos
 	var trunk_h := _rng.randf_range(1.0, 2.0)
 	var canopy_r := _rng.randf_range(0.6, 1.2)
+
+	# Collision
+	var col := CollisionShape3D.new()
+	var col_shape := CylinderShape3D.new()
+	col_shape.radius = 0.3
+	col_shape.height = trunk_h
+	col.shape = col_shape
+	col.position = Vector3(0, trunk_h / 2.0, 0)
+	tree.add_child(col)
 
 	# Shadow
 	var shadow := MeshInstance3D.new()
@@ -192,9 +201,16 @@ func _place_rocks(count: int) -> void:
 		var rock := _create_rock(pos)
 		rock_container.add_child(rock)
 
-func _create_rock(pos: Vector3) -> Node3D:
-	var rock := Node3D.new()
+func _create_rock(pos: Vector3) -> StaticBody3D:
+	var rock := StaticBody3D.new()
 	rock.position = pos
+	# Collision
+	var col := CollisionShape3D.new()
+	var col_shape := SphereShape3D.new()
+	col_shape.radius = 0.4
+	col.shape = col_shape
+	col.position = Vector3(0, 0.2, 0)
+	rock.add_child(col)
 	var rock_count := _rng.randi_range(1, 3)
 	for i in range(rock_count):
 		var r := MeshInstance3D.new()
@@ -228,8 +244,8 @@ func _place_ruins(count: int) -> void:
 		var ruin := _create_ruin(pos)
 		ruins_container.add_child(ruin)
 
-func _create_ruin(pos: Vector3) -> Node3D:
-	var ruin := Node3D.new()
+func _create_ruin(pos: Vector3) -> StaticBody3D:
+	var ruin := StaticBody3D.new()
 	ruin.position = pos
 	ruin.rotation.y = _rng.randf_range(0, TAU)
 	var wall_mat := StandardMaterial3D.new()
@@ -242,6 +258,14 @@ func _create_ruin(pos: Vector3) -> Node3D:
 	var w := _rng.randf_range(2.0, 3.5)
 	var d := _rng.randf_range(1.5, 2.5)
 	var h := _rng.randf_range(1.5, 2.5)
+
+	# Collision (box shape matching walls)
+	var col := CollisionShape3D.new()
+	var col_shape := BoxShape3D.new()
+	col_shape.size = Vector3(w, h, d)
+	col.shape = col_shape
+	col.position = Vector3(0, h / 2.0, 0)
+	ruin.add_child(col)
 
 	# Walls (box)
 	var walls := MeshInstance3D.new()

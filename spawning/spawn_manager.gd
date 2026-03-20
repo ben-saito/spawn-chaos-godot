@@ -31,15 +31,6 @@ func spawn_from_edge(enemy_key: String) -> Node:
 func _on_enemy_spawned(enemy_key: String, source: String) -> void:
 	if source == "split":
 		spawn_enemy(enemy_key, _random_edge_position())
-	elif source == "keyboard":
-		var cost: int = _EnemyFactory.get_cost(enemy_key)
-		if GameState.game_points >= cost:
-			GameState.game_points -= cost
-			var enemy = spawn_from_edge(enemy_key)
-			if enemy:
-				var display_name: String = _EnemyFactory.DISPLAY_NAMES.get(enemy_key, enemy_key)
-				var entry: String = "%s -%dpt" % [display_name, cost]
-				EventBus.spawn_log_added.emit(entry)
 	elif source == "chat":
 		var enemy = spawn_from_edge(enemy_key)
 		if enemy:

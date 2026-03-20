@@ -6,21 +6,28 @@ const SCREEN_W := 1280
 const SCREEN_H := 720
 
 # 3D World dimensions (in 3D units)
-const WORLD_W := 120.0
-const WORLD_H := 90.0
-
-# Treasure chests
-const CHEST_SPAWN_INTERVAL := 45.0  # seconds between chest spawns
-const MAX_CHESTS := 3                # max chests on map at once
-const CHEST_PICKUP_RANGE := 1.5      # distance to open chest
+const WORLD_W := 50.0
+const WORLD_H := 40.0
 
 # Physics / frame rate
 const PHYSICS_FPS := 30
 
-# Game-points pool (keyboard spawns / gimmicks)
-const INITIAL_GAME_POINTS := 2000
-const GAME_POINTS_RECOVERY := 5        # per second
-const MAX_GAME_POINTS := 99999
+# Game duration (seconds) - Streamer must survive this long to win
+const GAME_DURATION := 300  # 5 minutes
+
+# Phase thresholds (remaining_time boundaries)
+const PHASE2_TIME := 180.0  # Phase 2 starts at 3:00 remaining
+const PHASE3_TIME := 60.0   # Phase 3 (FINAL RUSH) starts at 1:00 remaining
+
+# Viewer cost multipliers per phase
+const VIEWER_COST_MULT_PHASE1 := 1.0
+const VIEWER_COST_MULT_PHASE2 := 0.75
+const VIEWER_COST_MULT_PHASE3 := 0.5
+
+# Auto-spawn rate multipliers per phase
+const SPAWN_RATE_MULT_PHASE1 := 1.0
+const SPAWN_RATE_MULT_PHASE2 := 1.5
+const SPAWN_RATE_MULT_PHASE3 := 2.0
 
 # Viewer-points (Twitcasting chat)
 const INITIAL_VIEWER_POINTS := 100
@@ -63,26 +70,6 @@ const BOSS_SCHEDULE := [
 	[210, "wolfpack"],
 	[270, "dragon"],
 ]
-
-# Enemy key -> keyboard shortcut
-const SPAWN_KEYS := {
-	KEY_1: "slime",
-	KEY_2: "goblin",
-	KEY_3: "skeleton",
-	KEY_4: "ogre",
-	KEY_5: "dragon",
-	KEY_6: "bat",
-	KEY_7: "mushroom",
-	KEY_8: "slime_king",
-	KEY_9: "wolfpack",
-}
-
-# Gimmick key -> keyboard shortcut
-const GIMMICK_KEYS := {
-	KEY_Q: "ice_floor",
-	KEY_W: "darkness",
-	KEY_E: "gravity",
-}
 
 # Pyxel 16-colour palette (kept for reference / procedural drawing)
 const PALETTE: Array[Color] = [
