@@ -22,19 +22,8 @@ var _phase3_triggered: bool = false
 var _30sec_triggered: bool = false
 var _10sec_triggered: bool = false
 
-# Auto-spawn
-var _next_boss_idx: int = 0
-
 # Final rush screen flash
 var _final_rush_flash: float = 0.0
-
-# Fake viewer names for auto-spawned enemies
-const FAKE_VIEWERS := [
-	"たかし", "ゆうき", "さくら", "はるか", "けんた",
-	"みさき", "そうた", "あおい", "りく", "ひなた",
-	"こころ", "ゆうと", "れん", "めい", "かいと",
-	"ももか", "はやと", "ゆな", "そら", "りこ",
-]
 
 # 3D scene nodes
 var _camera: Camera3D
@@ -217,9 +206,6 @@ func _update_play(delta: float) -> void:
 	# Apply gimmick effects to player
 	_apply_gimmick_effects()
 
-	# Auto-spawn enemies
-	_auto_spawn()
-
 	# Process chat commands
 	_process_chat_commands()
 
@@ -229,64 +215,6 @@ func _update_play(delta: float) -> void:
 	# Final rush flash effect
 	if GameState.phase == 3:
 		_final_rush_flash += delta * 4.0
-
-func _auto_spawn() -> void:
-	var elapsed: int = int(GameState.elapsed_seconds())
-	var enemy_count: int = enemies_container.get_child_count()
-	# Determine current wave
-	var wave: Array = Config.WAVE_TABLE[0]
-	for w in Config.WAVE_TABLE:
-		if elapsed >= w[0]:
-			wave = w
-	var interval: int = wave[1]
-	var pool: Array = wave[2]
-	var count: int = wave[3]
-
-	# Scale spawn rate with phase
-	var rate_mult: float = 1.0
-	match GameState.phase:
-		2:
-			rate_mult = Config.SPAWN_RATE_MULT_PHASE2
-		3:
-			rate_mult = Config.SPAWN_RATE_MULT_PHASE3
-	var adjusted_interval: int = maxi(1, int(float(interval) / rate_mult))
-
-	# Phase 2+: expand pool with stronger enemies
-	var spawn_pool: Array = pool.duplicate()
-	if GameState.phase >= 2:
-		if not spawn_pool.has("ogre"):
-			spawn_pool.append("ogre")
-		if not spawn_pool.has("slime_king"):
-			spawn_pool.append("slime_king")
-	if GameState.phase >= 3:
-		if not spawn_pool.has("dragon"):
-			spawn_pool.append("dragon")
-		if not spawn_pool.has("wolfpack"):
-			spawn_pool.append("wolfpack")
-
-	# Spawn at interval (max 50 enemies)
-	if GameState.elapsed_frames % adjusted_interval == 0 and enemy_count < 50:
-		for i in range(count):
-			var key: String = spawn_pool[randi() % spawn_pool.size()]
-			var enemy = spawn_manager_node.spawn_from_edge(key)
-			if enemy and enemy.has_method("set_summoner"):
-				var fake_name: String = FAKE_VIEWERS[randi() % FAKE_VIEWERS.size()]
-				enemy.set_summoner(fake_name)
-				GameState.viewer_total_spawns += 1
-				var disp: String = _EnemyFactory.DISPLAY_NAMES.get(key, key)
-				EventBus.spawn_log_added.emit("%s が %s を召喚!" % [fake_name, disp])
-	# Boss schedule (with warning 3 sec before)
-	if _next_boss_idx < Config.BOSS_SCHEDULE.size():
-		var boss_entry: Array = Config.BOSS_SCHEDULE[_next_boss_idx]
-		if elapsed >= boss_entry[0]:
-			var enemy = spawn_manager_node.spawn_from_edge(boss_entry[1])
-			var fake_name: String = FAKE_VIEWERS[randi() % FAKE_VIEWERS.size()]
-			if enemy and enemy.has_method("set_summoner"):
-				enemy.set_summoner(fake_name)
-				GameState.viewer_total_spawns += 1
-			var display: String = _EnemyFactory.DISPLAY_NAMES.get(boss_entry[1], boss_entry[1])
-			EventBus.boss_warning.emit(display)
-			_next_boss_idx += 1
 
 func _update_gameover() -> void:
 	if Input.is_key_pressed(KEY_R):
@@ -523,7 +451,6 @@ func _reset_game() -> void:
 	_30sec_triggered = false
 	_10sec_triggered = false
 	_final_rush_flash = 0.0
-	_next_boss_idx = 0
 	_camera_initialized = false
 	# Remove all dynamic nodes
 	for child in enemies_container.get_children():
